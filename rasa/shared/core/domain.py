@@ -201,6 +201,13 @@ class Domain:
 
         return SessionConfig(session_expiration_time_min, carry_over_slots)
 
+    def merge_if_is_domain(self, full_path: Text, domain: "Domain") -> "Domain":
+        """Checks if received path is a domain and merge it if it is."""
+        if Domain.is_domain_file(full_path):
+            other_domain = Domain.from_file(full_path)
+            return other_domain.merge(domain)
+        return domain
+
     @classmethod
     def from_directory(cls, path: Text) -> "Domain":
         """Loads and merges multiple domain files recursively from a directory tree."""
@@ -209,9 +216,7 @@ class Domain:
         for root, _, files in os.walk(path, followlinks=True):
             for file in files:
                 full_path = os.path.join(root, file)
-                if Domain.is_domain_file(full_path):
-                    other = Domain.from_file(full_path)
-                    domain = other.merge(domain)
+                domain = domain.merge_if_is_domain(full_path, domain)
 
         return domain
 
@@ -256,10 +261,36 @@ class Domain:
             merged_dicts = merge_dicts(dict1, dict2, override_existing_values)
             return list(merged_dicts.values())
 
-        if override:
+        def override_attributes(combined: Dict[Text, Any]) -> Dict[Text, Any]:
             config = domain_dict["config"]
             for key, val in config.items():
                 combined["config"][key] = val
+            return combined
+
+        def remove_existing_forms(
+            domain_dict: Dict[Text, Any], combined: Dict[Text, Any]
+        ) -> Dict[Text, Any]:
+            for form in combined[KEY_FORMS]:
+                if form in domain_dict[KEY_ACTIONS]:
+                    domain_dict[KEY_ACTIONS].remove(form)
+            return domain_dict
+
+        def merge_lists_keys(
+            combined: Dict[Text, Any], domain_dict: Dict[Text, Any]
+        ) -> Dict[Text, Any]:
+            for key in [KEY_ENTITIES, KEY_ACTIONS, KEY_E2E_ACTIONS]:
+                combined[key] = merge_lists(combined[key], domain_dict[key])
+            return combined
+
+        def merge_dicts_keys(
+            combined: Dict[Text, Any], domain_dict: Dict[Text, Any]
+        ) -> Dict[Text, Any]:
+            for key in [KEY_FORMS, KEY_RESPONSES, KEY_SLOTS]:
+                combined[key] = merge_dicts(combined[key], domain_dict[key], override)
+            return combined
+
+        if override:
+            combined = override_attributes(combined)
 
         if override or self.session_config == SessionConfig.default():
             combined[SESSION_CONFIG_KEY] = domain_dict[SESSION_CONFIG_KEY]
@@ -269,15 +300,10 @@ class Domain:
         )
 
         # remove existing forms from new actions
-        for form in combined[KEY_FORMS]:
-            if form in domain_dict[KEY_ACTIONS]:
-                domain_dict[KEY_ACTIONS].remove(form)
+        domain_dict = remove_existing_forms(domain_dict, combined)
 
-        for key in [KEY_ENTITIES, KEY_ACTIONS, KEY_E2E_ACTIONS]:
-            combined[key] = merge_lists(combined[key], domain_dict[key])
-
-        for key in [KEY_FORMS, KEY_RESPONSES, KEY_SLOTS]:
-            combined[key] = merge_dicts(combined[key], domain_dict[key], override)
+        combined = merge_lists_keys(combined, domain_dict)
+        combined = merge_dicts_keys(combined, domain_dict)
 
         return self.__class__.from_dict(combined)
 
