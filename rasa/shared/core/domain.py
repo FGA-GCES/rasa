@@ -1183,9 +1183,9 @@ class Domain:
 
         # clean empty keys
         return {
-            k: v
-            for k, v in domain_data.items()
-            if v != {} and v != [] and v is not None
+            key: value
+            for key, value in domain_data.items()
+            if value != {} and value != [] and value is not None
         }
 
     def persist(self, filename: Union[Text, Path]) -> None:
@@ -1239,7 +1239,7 @@ class Domain:
         Excludes slots which aren't featurized.
         """
 
-        return [s.name for s in self.slots if s.influence_conversation]
+        return [slot.name for slot in self.slots if slot.influence_conversation]
 
     @property
     def _actions_for_domain_warnings(self) -> List[Text]:
@@ -1249,9 +1249,9 @@ class Domain:
         """
 
         return [
-            a
-            for a in self.user_actions_and_forms
-            if a not in rasa.shared.core.constants.DEFAULT_ACTION_NAMES
+            action
+            for action in self.user_actions_and_forms
+            if action not in rasa.shared.core.constants.DEFAULT_ACTION_NAMES
         ]
 
     @staticmethod
@@ -1282,7 +1282,7 @@ class Domain:
     ) -> List[Text]:
         """Combines actions with utter actions listed in responses section."""
         unique_template_names = [
-            a for a in sorted(list(templates.keys())) if a not in actions
+            action for action in sorted(list(templates.keys())) if action not in actions
         ]
         return actions + unique_template_names
 
@@ -1296,9 +1296,9 @@ class Domain:
         # 0 in this array. to keep it that way, we remove the duplicate
         # action names from the users list instead of the defaults
         unique_user_actions = [
-            a
-            for a in user_actions
-            if a not in rasa.shared.core.constants.DEFAULT_ACTION_NAMES
+            action
+            for action in user_actions
+            if action not in rasa.shared.core.constants.DEFAULT_ACTION_NAMES
         ]
         return rasa.shared.core.constants.DEFAULT_ACTION_NAMES + unique_user_actions
 
@@ -1395,14 +1395,14 @@ class Domain:
             """Return a message given a list of duplicates."""
 
             message = ""
-            for d, name in duplicates:
-                if d:
+            for domain, name in duplicates:
+                if domain:
                     if message:
                         message += "\n"
                     message += (
                         f"Duplicate {name} in domain. "
                         f"These {name} occur more than once in "
-                        f"the domain: '{', '.join(d)}'."
+                        f"the domain: '{', '.join(domain)}'."
                     )
             return message
 
@@ -1432,12 +1432,12 @@ class Domain:
         """Warn user of utterance names which have no specified template."""
 
         utterances = [
-            a
-            for a in self.action_names
-            if a.startswith(rasa.shared.constants.UTTER_PREFIX)
+            action
+            for action in self.action_names
+            if action.startswith(rasa.shared.constants.UTTER_PREFIX)
         ]
 
-        missing_templates = [t for t in utterances if t not in self.templates.keys()]
+        missing_templates = [template for template in utterances if template not in self.templates.keys()]
 
         if missing_templates:
             for template in missing_templates:
