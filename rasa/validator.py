@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class ValidatorInterface:
-    """Interface used by ValidatorIntent, ValidatorUtterance and Validator"""
+    """Interface used by ValidatorIntent, ValidatorUtterance and Validator."""
 
     def __init__(
         self, domain: Domain, intents: TrainingData, story_graph: StoryGraph
@@ -46,11 +46,10 @@ class ValidatorInterface:
 
 
 class ValidatorIntent(ValidatorInterface):
-    """A class used to verify usage of intents"""
+    """A class used to verify usage of intents."""
 
     def verify_intents(self, ignore_warnings: bool = True) -> bool:
         """Compares list of intents in domain with intents in NLU training data."""
-
         everything_is_alright = True
 
         nlu_data_intents = {e.data["intent"] for e in self.intents.intent_examples}
@@ -102,9 +101,10 @@ class ValidatorIntent(ValidatorInterface):
 
     def verify_intents_in_stories(self, ignore_warnings: bool = True) -> bool:
         """Checks intents used in stories.
+        
         Verifies if the intents used in the stories are valid, and whether
-        all valid intents are used in the stories."""
-
+        all valid intents are used in the stories.
+        """
         everything_is_alright = self.verify_intents(ignore_warnings)
 
         stories_intents = {
@@ -133,11 +133,10 @@ class ValidatorIntent(ValidatorInterface):
 
 
 class ValidatorUtterance(ValidatorInterface):
-    """A class used to verify usage of utterances"""
+    """A class used to verify usage of utterances."""
 
     def _gather_utterance_actions(self) -> Set[Text]:
         """Return all utterances which are actions."""
-
         responses = {
             response.split(rasa.shared.nlu.constants.RESPONSE_IDENTIFIER_DELIMITER)[0]
             for response in self.intents.responses.keys()
@@ -179,9 +178,10 @@ class ValidatorUtterance(ValidatorInterface):
 
     def verify_utterances_in_stories(self, ignore_warnings: bool = True) -> bool:
         """Verifies usage of utterances in stories.
-        Checks whether utterances used in the stories are valid,
-        and whether all valid utterances are used in stories."""
 
+        Checks whether utterances used in the stories are valid,
+        and whether all valid utterances are used in stories.
+        """
         everything_is_alright = self.verify_utterances()
 
         utterance_actions = self._gather_utterance_actions()
@@ -259,7 +259,6 @@ class Validator(ValidatorInterface):
 
     def verify_nlu(self, ignore_warnings: bool = True) -> bool:
         """Runs all the validations on intents and utterances."""
-
         logger.info("Validating intents...")
         validator_interface = ValidatorInterface(
             self.domain, self.intents, self.story_graph
