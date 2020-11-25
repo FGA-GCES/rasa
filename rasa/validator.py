@@ -101,7 +101,7 @@ class ValidatorIntent(ValidatorInterface):
 
     def verify_intents_in_stories(self, ignore_warnings: bool = True) -> bool:
         """Checks intents used in stories.
-        
+
         Verifies if the intents used in the stories are valid, and whether
         all valid intents are used in the stories.
         """
