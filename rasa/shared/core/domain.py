@@ -320,16 +320,22 @@ class Domain:
             slot = slot_class(slot_name, **slot_dict[slot_name])
             slots.append(slot)
         return slots
-    
+
     @staticmethod
-    def include_all_entities(entities: List[Text], roles: Dict[Text, List[Text]], groups: Dict[Text, List[Text]]) -> set:
+    def include_all_entities(
+        entities: List[Text],
+        roles: Dict[Text, List[Text]],
+        groups: Dict[Text, List[Text]],
+    ) -> set:
         included_entities = set(entities)
         included_entities.update(Domain.concatenate_entity_labels(roles))
         included_entities.update(Domain.concatenate_entity_labels(groups))
         return included_entities
-    
+
     @staticmethod
-    def update_entities(entities: set, roles: Dict[Text, List[Text]], groups: Dict[Text, List[Text]]) -> set:
+    def update_entities(
+        entities: set, roles: Dict[Text, List[Text]], groups: Dict[Text, List[Text]]
+    ) -> set:
         for entity in list(entities):
             entities.update(Domain.concatenate_entity_labels(roles, entity))
             entities.update(Domain.concatenate_entity_labels(groups, entity))
@@ -724,7 +730,7 @@ class Domain:
         needs to fill in next (either explicitly or implicitly) as part of a form.
         """
         if self.form_names and rasa.shared.core.constants.REQUESTED_SLOT not in [
-            s.name for s in self.slots
+            slot.name for slot in self.slots
         ]:
             self.slots.append(
                 TextSlot(
@@ -751,15 +757,15 @@ class Domain:
                     rasa.shared.core.constants.DEFAULT_KNOWLEDGE_BASE_ACTION
                 )
             )
-            slot_names = [s.name for s in self.slots]
+            slot_names = [slot.name for slot in self.slots]
             knowledge_base_slots = [
                 rasa.shared.core.constants.SLOT_LISTED_ITEMS,
                 rasa.shared.core.constants.SLOT_LAST_OBJECT,
                 rasa.shared.core.constants.SLOT_LAST_OBJECT_TYPE,
             ]
-            for s in knowledge_base_slots:
-                if s not in slot_names:
-                    self.slots.append(TextSlot(s, influence_conversation=False))
+            for slot in knowledge_base_slots:
+                if slot not in slot_names:
+                    self.slots.append(TextSlot(slot, influence_conversation=False))
 
     def index_for_action(self, action_name: Text) -> Optional[int]:
         """Look up which action index corresponds to this action name."""
@@ -770,7 +776,7 @@ class Domain:
             self.raise_action_not_found_exception(action_name)
 
     def raise_action_not_found_exception(self, action_name) -> NoReturn:
-        action_names = "\n".join([f"\t - {a}" for a in self.action_names])
+        action_names = "\n".join([f"\t - {action}" for action in self.action_names])
         raise ActionNotFoundException(
             f"Cannot access action '{action_name}', "
             f"as that name is not a registered "
@@ -1147,6 +1153,32 @@ class Domain:
 
         return entities_for_file
 
+    def clean_domain_data(self) -> Dict[Text, Any]:
+        domain_data = self.as_dict()
+        # remove e2e actions from domain before we display it
+        domain_data.pop(KEY_E2E_ACTIONS, None)
+        for idx, intent_info in enumerate(domain_data[KEY_INTENTS]):
+            for name, intent in intent_info.items():
+                if intent.get(USE_ENTITIES_KEY) is True:
+                    del intent[USE_ENTITIES_KEY]
+                if not intent.get(IGNORE_ENTITIES_KEY):
+                    intent.pop(IGNORE_ENTITIES_KEY, None)
+                if len(intent) == 0:
+                    domain_data[KEY_INTENTS][idx] = name
+
+        return domain_data
+
+    def clean_slots(self, domain_data: Dict[Text, Any]) -> Dict[Text, Any]:
+        for slot in domain_data[KEY_SLOTS].values():
+            if slot["initial_value"] is None:
+                del slot["initial_value"]
+            if slot["auto_fill"]:
+                del slot["auto_fill"]
+            if slot["type"].startswith("rasa.shared.core.slots"):
+                slot["type"] = Slot.resolve_by_type(slot["type"]).type_name
+
+        return domain_data
+
     def cleaned_domain(self) -> Dict[Text, Any]:
         """Fetch cleaned domain to display or write into a file.
 
@@ -1157,26 +1189,8 @@ class Domain:
         Returns:
             A cleaned dictionary version of the domain.
         """
-        domain_data = self.as_dict()
-        # remove e2e actions from domain before we display it
-        domain_data.pop(KEY_E2E_ACTIONS, None)
-
-        for idx, intent_info in enumerate(domain_data[KEY_INTENTS]):
-            for name, intent in intent_info.items():
-                if intent.get(USE_ENTITIES_KEY) is True:
-                    del intent[USE_ENTITIES_KEY]
-                if not intent.get(IGNORE_ENTITIES_KEY):
-                    intent.pop(IGNORE_ENTITIES_KEY, None)
-                if len(intent) == 0:
-                    domain_data[KEY_INTENTS][idx] = name
-
-        for slot in domain_data[KEY_SLOTS].values():
-            if slot["initial_value"] is None:
-                del slot["initial_value"]
-            if slot["auto_fill"]:
-                del slot["auto_fill"]
-            if slot["type"].startswith("rasa.shared.core.slots"):
-                slot["type"] = Slot.resolve_by_type(slot["type"]).type_name
+        domain_data = self.clean_domain_data()
+        domain_data = self.clean_slots(domain_data)
 
         if domain_data["config"]["store_entities_as_slots"]:
             del domain_data["config"]["store_entities_as_slots"]
@@ -1437,7 +1451,9 @@ class Domain:
             if action.startswith(rasa.shared.constants.UTTER_PREFIX)
         ]
 
-        missing_templates = [template for template in utterances if template not in self.templates.keys()]
+        missing_templates = [
+            template for template in utterances if template not in self.templates.keys()
+        ]
 
         if missing_templates:
             for template in missing_templates:
