@@ -22,8 +22,8 @@ import rasa.shared.utils.io
 logger = logging.getLogger(__name__)
 
 
-class Validator:
-    """A class used to verify usage of intents and utterances."""
+class ValidatorInterface:
+    """Interface used by ValidatorIntent, ValidatorUtterance and Validator"""
 
     def __init__(
         self, domain: Domain, intents: TrainingData, story_graph: StoryGraph
@@ -43,6 +43,10 @@ class Validator:
         intents = await importer.get_nlu_data()
 
         return cls(domain, intents, story_graph)
+
+
+class ValidatorIntent(ValidatorInterface):
+    """A class used to verify usage of intents"""
 
     def verify_intents(self, ignore_warnings: bool = True) -> bool:
         """Compares list of intents in domain with intents in NLU training data."""
@@ -98,7 +102,6 @@ class Validator:
 
     def verify_intents_in_stories(self, ignore_warnings: bool = True) -> bool:
         """Checks intents used in stories.
-
         Verifies if the intents used in the stories are valid, and whether
         all valid intents are used in the stories."""
 
@@ -127,6 +130,10 @@ class Validator:
                 everything_is_alright = ignore_warnings and everything_is_alright
 
         return everything_is_alright
+
+
+class ValidatorUtterance(ValidatorInterface):
+    """A class used to verify usage of utterances"""
 
     def _gather_utterance_actions(self) -> Set[Text]:
         """Return all utterances which are actions."""
@@ -172,7 +179,6 @@ class Validator:
 
     def verify_utterances_in_stories(self, ignore_warnings: bool = True) -> bool:
         """Verifies usage of utterances in stories.
-
         Checks whether utterances used in the stories are valid,
         and whether all valid utterances are used in stories."""
 
@@ -210,6 +216,10 @@ class Validator:
                 everything_is_alright = ignore_warnings and everything_is_alright
 
         return everything_is_alright
+
+
+class Validator(ValidatorInterface):
+    """A class used to verify usage of intents and utterances."""
 
     def verify_story_structure(
         self, ignore_warnings: bool = True, max_history: Optional[int] = None
@@ -251,15 +261,25 @@ class Validator:
         """Runs all the validations on intents and utterances."""
 
         logger.info("Validating intents...")
-        intents_are_valid = self.verify_intents_in_stories(ignore_warnings)
+        validator_interface = ValidatorInterface(
+            self.domain, self.intents, self.story_graph
+        )
+        intents_are_valid = validator_interface.verify_intents_in_stories(
+            ignore_warnings
+        )
 
         logger.info("Validating uniqueness of intents and stories...")
-        there_is_no_duplication = self.verify_example_repetition_in_intents(
+        there_is_no_duplication = validator_interface.verify_example_repetition_in_intents(
             ignore_warnings
         )
 
         logger.info("Validating utterances...")
-        stories_are_valid = self.verify_utterances_in_stories(ignore_warnings)
+        validator_utterance = ValidatorUtterance(
+            self.domain, self.intents, self.story_graph
+        )
+        stories_are_valid = validator_utterance.verify_utterances_in_stories(
+            ignore_warnings
+        )
         return intents_are_valid and stories_are_valid and there_is_no_duplication
 
     def verify_domain_validity(self) -> bool:
