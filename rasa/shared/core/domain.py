@@ -320,6 +320,20 @@ class Domain:
             slot = slot_class(slot_name, **slot_dict[slot_name])
             slots.append(slot)
         return slots
+    
+    @staticmethod
+    def include_all_entities(entities: List[Text], roles: Dict[Text, List[Text]], groups: Dict[Text, List[Text]]) -> set:
+        included_entities = set(entities)
+        included_entities.update(Domain.concatenate_entity_labels(roles))
+        included_entities.update(Domain.concatenate_entity_labels(groups))
+        return included_entities
+    
+    @staticmethod
+    def update_entities(entities: set, roles: Dict[Text, List[Text]], groups: Dict[Text, List[Text]]) -> set:
+        for entity in list(entities):
+            entities.update(Domain.concatenate_entity_labels(roles, entity))
+            entities.update(Domain.concatenate_entity_labels(groups, entity))
+        return entities
 
     @staticmethod
     def _transform_intent_properties_for_internal_use(
@@ -355,22 +369,12 @@ class Domain:
         # label with the corresponding role or group label to make sure roles and
         # groups can also influence the dialogue predictions
         if properties[USE_ENTITIES_KEY] is True:
-            included_entities = set(entities)
-            included_entities.update(Domain.concatenate_entity_labels(roles))
-            included_entities.update(Domain.concatenate_entity_labels(groups))
+            included_entities = Domain.include_all_entities(entities, roles, groups)
         else:
             included_entities = set(properties[USE_ENTITIES_KEY])
-            for entity in list(included_entities):
-                included_entities.update(
-                    Domain.concatenate_entity_labels(roles, entity)
-                )
-                included_entities.update(
-                    Domain.concatenate_entity_labels(groups, entity)
-                )
+            included_entities = Domain.update_entities(included_entities, roles, groups)
         excluded_entities = set(properties[IGNORE_ENTITIES_KEY])
-        for entity in list(excluded_entities):
-            excluded_entities.update(Domain.concatenate_entity_labels(roles, entity))
-            excluded_entities.update(Domain.concatenate_entity_labels(groups, entity))
+        excluded_entities = Domain.update_entities(excluded_entities, roles, groups)
         used_entities = list(included_entities - excluded_entities)
         used_entities.sort()
 
