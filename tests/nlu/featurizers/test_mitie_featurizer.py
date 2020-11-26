@@ -52,10 +52,8 @@ def test_mitie_featurizer_train(mitie_feature_extractor):
     expected_cls = np.array([0.0, -4.4551446, 0.26073121, -1.46632245, -1.84205751])
 
     seq_vec, sen_vec = message.get_dense_features(TEXT, [])
-    if seq_vec:
-        seq_vec = seq_vec.features
-    if sen_vec:
-        sen_vec = sen_vec.features
+    
+    verify_sentence_sequence_not_none(seq_vec, sen_vec)
 
     assert len(message.get(TOKENS_NAMES[TEXT])) == len(seq_vec)
     assert np.allclose(seq_vec[0][:5], expected, atol=1e-5)
