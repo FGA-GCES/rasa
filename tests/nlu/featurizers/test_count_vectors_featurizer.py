@@ -410,25 +410,13 @@ def test_count_vector_featurizer_persist_load(tmp_path):
     test_ftr.process(test_message2)
 
     test_seq_vec_1, test_sen_vec_1 = test_message1.get_sparse_features(TEXT, [])
-    if test_seq_vec_1:
-        test_seq_vec_1 = test_seq_vec_1.features
-    if test_sen_vec_1:
-        test_sen_vec_1 = test_sen_vec_1.features
+    test_seq_vec_1, test_sen_vec_1 = verify_sentence_sequence_not_none(test_seq_vec_1, test_sen_vec_1)
     train_seq_vec_1, train_sen_vec_1 = train_message1.get_sparse_features(TEXT, [])
-    if train_seq_vec_1:
-        train_seq_vec_1 = train_seq_vec_1.features
-    if train_sen_vec_1:
-        train_sen_vec_1 = train_sen_vec_1.features
+    train_seq_vec_1, train_sen_vec_1 = verify_sentence_sequence_not_none(train_seq_vec_1, train_sen_vec_1)
     test_seq_vec_2, test_sen_vec_2 = test_message2.get_sparse_features(TEXT, [])
-    if test_seq_vec_2:
-        test_seq_vec_2 = test_seq_vec_2.features
-    if test_sen_vec_2:
-        test_sen_vec_2 = test_sen_vec_2.features
+    test_seq_vec_2, test_sen_vec_2 = verify_sentence_sequence_not_none(test_seq_vec_2, test_sen_vec_2)
     train_seq_vec_2, train_sen_vec_2 = train_message2.get_sparse_features(TEXT, [])
-    if train_seq_vec_2:
-        train_seq_vec_2 = train_seq_vec_2.features
-    if train_sen_vec_2:
-        train_sen_vec_2 = train_sen_vec_2.features
+    train_seq_vec_2, train_sen_vec_2 = verify_sentence_sequence_not_none(train_seq_vec_2, train_sen_vec_2)
 
     # check that train features and test features after loading are the same
     assert np.all(test_seq_vec_1.toarray() == train_seq_vec_1.toarray())

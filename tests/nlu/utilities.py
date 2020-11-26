@@ -21,6 +21,13 @@ async def interpreter_for(component_builder, data, path, config):
     interpreter = Interpreter.load(path, component_builder)
     return interpreter
 
+def verify_sentence_sequence_not_none(sequence, sentence):
+    if sequence and sentence:
+        return sequence.features, sentence.features
+    if sequence and not sentence:
+        return sequence.features, None
+    if not sequence and sentence:
+        return None, sentence.features
 
 class ResponseTest:
     def __init__(self, endpoint, expected_response, payload=None):
