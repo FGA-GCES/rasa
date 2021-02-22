@@ -196,10 +196,10 @@ class RegexFeaturizer(SparseFeaturizer):
 
         if not found_any_feature:
             rasa.shared.utils.io.raise_warning(
-                "No lookup tables or regexes defined in the training data that have "
-                "a name equal to any entity in the training data. In order for this "
-                "component to work you need to define valid lookup tables or regexes "
-                "in the training data."
+                f"No lookup tables or regexes defined in the training data "
+                f"that have a name equal to any entity in the training data. "
+                f"In order for this component to work you need to define valid "
+                f"lookup tables or regexes in the training data."
             )
 
     def process(self, message: Message, **kwargs: Any) -> None:
