@@ -186,19 +186,34 @@ class RegexFeaturizer(SparseFeaturizer):
         else:
             self.known_patterns = patterns_from_data
 
+        found_any_feature: bool = False
         for example in training_data.training_examples:
             for attribute in [TEXT, RESPONSE, ACTION_TEXT]:
-                self._text_features_with_regex(example, attribute)
+                found_any_feature = (
+                    self._text_features_with_regex(example, attribute)
+                    or found_any_feature
+                )
+
+        if not found_any_feature:
+            rasa.shared.utils.io.raise_warning(
+                "No lookup tables or regexes defined in the training data that have "
+                "a name equal to any entity in the training data. In order for this "
+                "component to work you need to define valid lookup tables or regexes "
+                "in the training data."
+            )
 
     def process(self, message: Message, **kwargs: Any) -> None:
         self._text_features_with_regex(message, TEXT)
 
-    def _text_features_with_regex(self, message: Message, attribute: Text) -> None:
+    def _text_features_with_regex(self, message: Message, attribute: Text) -> bool:
         """Helper method to extract features and set them appropriately in the message object.
 
         Args:
             message: Message to be featurized.
             attribute: Attribute of message to be featurized.
+        
+        Returns:
+            True if it extracted any feature
         """
         if self.known_patterns:
             sequence_features, sentence_features = self._features_for_patterns(
@@ -222,6 +237,12 @@ class RegexFeaturizer(SparseFeaturizer):
                     self.component_config[FEATURIZER_CLASS_ALIAS],
                 )
                 message.add_features(final_sentence_features)
+
+            extracted_any_feature: bool = (sequence_features is not None) or (
+                sentence_features is not None
+            )
+
+            return extracted_any_feature
 
     def _features_for_patterns(
         self, message: Message, attribute: Text
