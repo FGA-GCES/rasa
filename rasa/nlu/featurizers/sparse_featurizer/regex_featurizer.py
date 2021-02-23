@@ -1,13 +1,14 @@
 import logging
 import re
-from typing import Any, Dict, List, Optional, Text, Type, Tuple
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Text, Type, Tuple
+
 import numpy as np
 import scipy.sparse
 
+import rasa.nlu.utils.pattern_utils as pattern_utils
 import rasa.shared.utils.io
 import rasa.utils.io
-import rasa.nlu.utils.pattern_utils as pattern_utils
 from rasa.nlu import utils
 from rasa.nlu.components import Component
 from rasa.nlu.config import RasaNLUModelConfig
@@ -16,6 +17,9 @@ from rasa.nlu.constants import (
     FEATURIZER_CLASS_ALIAS,
     MIN_ADDITIONAL_REGEX_PATTERNS,
 )
+from rasa.nlu.featurizers.featurizer import SparseFeaturizer
+from rasa.nlu.model import Metadata
+from rasa.nlu.tokenizers.tokenizer import Tokenizer
 from rasa.shared.nlu.constants import (
     TEXT,
     RESPONSE,
@@ -23,12 +27,9 @@ from rasa.shared.nlu.constants import (
     FEATURE_TYPE_SEQUENCE,
     ACTION_TEXT,
 )
-from rasa.nlu.featurizers.featurizer import SparseFeaturizer
 from rasa.shared.nlu.training_data.features import Features
-from rasa.nlu.model import Metadata
-from rasa.nlu.tokenizers.tokenizer import Tokenizer
-from rasa.shared.nlu.training_data.training_data import TrainingData
 from rasa.shared.nlu.training_data.message import Message
+from rasa.shared.nlu.training_data.training_data import TrainingData
 from rasa.shared.utils.common import lazy_property
 
 logger = logging.getLogger(__name__)
@@ -194,12 +195,12 @@ class RegexFeaturizer(SparseFeaturizer):
                     or found_any_feature
                 )
 
-        if not found_any_feature:
+        if training_data.lookup_tables is None or training_data.lookup_tables == []:
             rasa.shared.utils.io.raise_warning(
-                f"No lookup tables or regexes defined in the training data "
-                f"that have a name equal to any entity in the training data. "
-                f"In order for this component to work you need to define valid "
-                f"lookup tables or regexes in the training data."
+                "No lookup tables or regexes defined in the training data "
+                "that have a name equal to any entity in the training data. "
+                "In order for this component to work you need to define valid "
+                "lookup tables or regexes in the training data."
             )
 
     def process(self, message: Message, **kwargs: Any) -> None:
