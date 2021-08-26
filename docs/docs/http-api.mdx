@@ -48,6 +48,12 @@ The [SocketIO channel](./connectors/your-own-website.mdx#websocket-channel) does
 
 :::
 
+:::caution
+If you are running on Windows, multiple workers may experience errors. Currently SANIC is in EXPERIMENTAL for Windows,
+so there is a huge chance of errors happening. It is recommending to use only 1 WORKER for Windows. 
+
+:::
+
 ## Security Considerations
 
 We recommend to not expose the Rasa Server to the outside world, but
