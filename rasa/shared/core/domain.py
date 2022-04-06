@@ -96,8 +96,6 @@ ALL_DOMAIN_KEYS = [
 
 PREV_PREFIX = "prev_"
 
-# State is a dictionary with keys (USER, PREVIOUS_ACTION, SLOTS, ACTIVE_LOOP)
-# representing the origin of a SubState;
 # the values are SubStates, that contain the information needed for featurization
 SubStateValue = Union[Text, Tuple[Union[float, Text], ...]]
 SubState = MutableMapping[Text, SubStateValue]
@@ -107,29 +105,28 @@ logger = logging.getLogger(__name__)
 
 
 class InvalidDomain(RasaException):
-    """Exception that can be raised when domain is not valid."""
+    pass
 
 
 class ActionNotFoundException(ValueError, RasaException):
-    """Raised when an action name could not be found."""
+    pass
 
 
 class SessionConfig(NamedTuple):
-    """The Session Configuration."""
 
     session_expiration_time: float  # in minutes
     carry_over_slots: bool
 
     @staticmethod
     def default() -> "SessionConfig":
-        """Returns the SessionConfig with the default values."""
+
         return SessionConfig(
             DEFAULT_SESSION_EXPIRATION_TIME_IN_MINUTES,
             DEFAULT_CARRY_OVER_SLOTS_TO_NEW_SESSION,
         )
 
     def are_sessions_enabled(self) -> bool:
-        """Returns a boolean value depending on the value of session_expiration_time."""
+
         return self.session_expiration_time > 0
 
     def as_dict(self) -> Dict:
@@ -142,7 +139,6 @@ class SessionConfig(NamedTuple):
 
 @dataclass
 class EntityProperties:
-    """Class for keeping track of the properties of entities in the domain."""
 
     entities: List[Text]
     roles: Dict[Text, List[Text]]
@@ -159,12 +155,12 @@ class Domain:
 
     @classmethod
     def empty(cls) -> "Domain":
-        """Returns empty Domain."""
+
         return Domain.from_dict({})
 
     @classmethod
     def load(cls, paths: Union[List[Union[Path, Text]], Text, Path]) -> "Domain":
-        """Returns loaded Domain after merging all domain files."""
+
         if not paths:
             raise InvalidDomain(
                 "No domain file was specified. Please specify a path "
@@ -182,7 +178,7 @@ class Domain:
 
     @classmethod
     def from_path(cls, path: Union[Text, Path]) -> "Domain":
-        """Loads the `Domain` from a path."""
+
         path = os.path.abspath(path)
 
         if os.path.isfile(path):
@@ -199,12 +195,12 @@ class Domain:
 
     @classmethod
     def from_file(cls, path: Text) -> "Domain":
-        """Loads the `Domain` from a YAML file."""
+
         return cls.from_yaml(rasa.shared.utils.io.read_file(path), path)
 
     @classmethod
     def from_yaml(cls, yaml: Text, original_filename: Text = "") -> "Domain":
-        """Loads the `Domain` from YAML text after validating it."""
+
         try:
             rasa.shared.utils.validation.validate_yaml_schema(yaml, DOMAIN_SCHEMA_FILE)
 
@@ -220,14 +216,7 @@ class Domain:
 
     @classmethod
     def from_dict(cls, data: Dict) -> "Domain":
-        """Deserializes and creates domain.
 
-        Args:
-            data: The serialized domain.
-
-        Returns:
-            The instantiated `Domain` object.
-        """
         duplicates = data.pop("duplicates", None)
         if duplicates:
             warn_about_duplicates_found_during_domain_merging(duplicates)
@@ -322,7 +311,7 @@ class Domain:
         combined: Dict,
         override: bool = False,
     ) -> Dict:
-        """Combines two domain dictionaries."""
+
         if not domain_dict:
             return combined
 
@@ -341,7 +330,7 @@ class Domain:
         ) and domain_dict.get(SESSION_CONFIG_KEY):
             combined[SESSION_CONFIG_KEY] = domain_dict[SESSION_CONFIG_KEY]
 
-        # remove existing forms from new actions
+
         for form in combined.get(KEY_FORMS, []):
             if form in domain_dict.get(KEY_ACTIONS, []):
                 domain_dict[KEY_ACTIONS].remove(form)
@@ -459,9 +448,7 @@ class Domain:
 
     @staticmethod
     def collect_slots(slot_dict: Dict[Text, Any]) -> List[Slot]:
-        """Collects a list of slots from a dictionary."""
         slots = []
-        # make a copy to not alter the input dictionary
         slot_dict = copy.deepcopy(slot_dict)
         # Don't sort the slots, see https://github.com/RasaHQ/rasa-x/issues/3900
         for slot_name in slot_dict:

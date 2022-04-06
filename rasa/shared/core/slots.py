@@ -25,7 +25,7 @@ class Slot(ABC):
     @property
     @abstractmethod
     def type_name(self) -> Text:
-        """Name of the type of slot."""
+        pass
         ...
 
     def __init__(

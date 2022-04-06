@@ -96,7 +96,6 @@ MAPPING_TYPE = "type"
 
 
 class SlotMappingType(Enum):
-    """Slot mapping types."""
 
     FROM_ENTITY = "from_entity"
     FROM_INTENT = "from_intent"
@@ -105,14 +104,9 @@ class SlotMappingType(Enum):
     CUSTOM = "custom"
 
     def __str__(self) -> str:
-        """Returns the string representation that should be used in config files."""
         return self.value
 
     def is_predefined_type(self) -> bool:
-        """Returns True iff the mapping type is predefined.
-
-        That is, to evaluate the mapping no custom action execution is needed.
-        """
         return self != SlotMappingType.CUSTOM
 
 

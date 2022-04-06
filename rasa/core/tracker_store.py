@@ -316,7 +316,9 @@ class TrackerStore:
         tracker = self.init_tracker(sender_id)
 
         try:
-            dialogue = Dialogue.from_parameters(json.loads(serialised_tracker))
+            dialogue = Dialogue.create_from_parameters(
+                json.loads(serialised_tracker)
+            )
         except UnicodeDecodeError as e:
             raise TrackerDeserialisationException(
                 "Tracker cannot be deserialised. "

@@ -88,11 +88,10 @@ class TrackerWithCachedStates(DialogueStateTracker):
         evts: List[Event],
         slots: Optional[Iterable[Slot]] = None,
         max_event_history: Optional[int] = None,
-        sender_source: Optional[Text] = None,
         domain: Optional[Domain] = None,
         is_rule_tracker: bool = False,
     ) -> "TrackerWithCachedStates":
-        """Initializes a tracker with given events."""
+
         tracker = cls(
             sender_id, slots, max_event_history, domain, is_rule_tracker=is_rule_tracker
         )
