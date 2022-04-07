@@ -263,22 +263,19 @@ class LocalTrainingCache(TrainingCache):
         model_storage: ModelStorage,
     ) -> None:
         """Adds the output to the cache (see parent class for full docstring)."""
-        if self._is_disabled():
-            return
+        if not self._is_disabled():
+            cache_dir, output_type = None, None
+            if isinstance(output, Cacheable):
+                cache_dir, output_type = self._cache_output_to_disk(output, model_storage)
 
-        cache_dir, output_type = None, None
-        if isinstance(output, Cacheable):
-            cache_dir, output_type = self._cache_output_to_disk(output, model_storage)
-
-        try:
-            self._add_cache_entry(
-                cache_dir, fingerprint_key, output_fingerprint, output_type
-            )
-        except OperationalError:
-            if cache_dir:
-                shutil.rmtree(cache_dir)
-
-            raise
+            try:
+                self._add_cache_entry(
+                    cache_dir, fingerprint_key, output_fingerprint, output_type
+                )
+            except OperationalError:
+                if cache_dir:
+                    shutil.rmtree(cache_dir)
+                raise
 
     def _add_cache_entry(
         self,
