@@ -10,7 +10,6 @@ if typing.TYPE_CHECKING:
 
 
 class StoryWriter:
-    """Writes story training data to file."""
 
     def dumps(
         self,

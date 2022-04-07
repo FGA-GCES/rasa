@@ -808,7 +808,7 @@ class TrainingDataGenerator:
             #       checkpoints OR be the start of a conversation
             #       but not both.
             if STORY_START in {s.name for s in step.start_checkpoints}:
-                for i, e in enumerate(step.events):
+                for e in enumerate(step.events):
                     if isinstance(e, UserUttered):
                         # if there is a user utterance, that means before the
                         # user uttered something there has to be

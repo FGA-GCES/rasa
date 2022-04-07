@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 
 
 class StoryReader:
-    """Helper class to read a story file."""
 
     def __init__(
         self, domain: Optional[Domain] = None, source_name: Optional[Text] = None

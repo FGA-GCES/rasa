@@ -120,7 +120,6 @@ def write_text_file(
 
 
 def read_file(filename: Union[Text, Path], encoding: Text = DEFAULT_ENCODING) -> Any:
-    """Read text from a file."""
 
     try:
         with open(filename, encoding=encoding) as f:
@@ -139,7 +138,6 @@ def read_file(filename: Union[Text, Path], encoding: Text = DEFAULT_ENCODING) ->
 
 
 def read_json_file(filename: Union[Text, Path]) -> Any:
-    """Read json from a file."""
     content = read_file(filename)
     try:
         return json.loads(content)

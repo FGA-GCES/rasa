@@ -621,7 +621,6 @@ class YAMLStoryReader(StoryReader):
         if not user_text.startswith(INTENT_MESSAGE_PREFIX):
             return message
 
-        # Try to match the pattern.
         match = YAMLStoryReader._regex_message_pattern().match(user_text)
 
         # If it doesn't match, then (potentially) something went wrong, because the
@@ -814,7 +813,6 @@ class YAMLStoryReader(StoryReader):
 
 
 class StoryParser(YAMLStoryReader):
-    """Encapsulate story-specific parser behavior."""
 
     def _new_part(self, item_name: Text, item: Dict[Text, Any]) -> None:
         self._new_story_part(item_name, self.source_name)
@@ -830,7 +828,6 @@ class StoryParser(YAMLStoryReader):
 
 
 class RuleParser(YAMLStoryReader):
-    """Encapsulate rule-specific parser behavior."""
 
     def _new_part(self, item_name: Text, item: Dict[Text, Any]) -> None:
         self._new_rule_part(item_name, self.source_name)
