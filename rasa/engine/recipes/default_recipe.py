@@ -463,45 +463,50 @@ class DefaultV1Recipe(Recipe):
         preprocessors: List[Text],
         cli_parameters: Dict[Text, Any],
     ) -> None:
-        train_nodes["domain_provider"] = SchemaNode(
-            needs={"importer": "finetuning_validator"},
-            uses=DomainProvider,
-            constructor_name="create",
-            fn="provide_train",
-            config={},
-            is_target=True,
-            is_input=True,
-        )
-        train_nodes["domain_for_core_training_provider"] = SchemaNode(
-            needs={"domain": "domain_provider"},
-            uses=DomainForCoreTrainingProvider,
-            constructor_name="create",
-            fn="provide",
-            config={},
-            is_input=True,
-        )
-        train_nodes["story_graph_provider"] = SchemaNode(
-            needs={"importer": "finetuning_validator"},
-            uses=StoryGraphProvider,
-            constructor_name="create",
-            fn="provide",
-            config={"exclusion_percentage": cli_parameters.get("exclusion_percentage")},
-            is_input=True,
-        )
-        train_nodes["training_tracker_provider"] = SchemaNode(
-            needs={
-                "story_graph": "story_graph_provider",
-                "domain": "domain_for_core_training_provider",
-            },
-            uses=TrainingTrackerProvider,
-            constructor_name="create",
-            fn="provide",
-            config={
-                param: cli_parameters[param]
-                for param in ["debug_plots", "augmentation_factor"]
-                if param in cli_parameters
-            },
-        )
+
+        train_nodes_values = {
+                "domain_provider": {
+                    "needs": {"importer": "finetuning_validator"},
+                    "uses": DomainProvider,
+                    "fn": "provide_train",
+                    "config":{},
+                    },
+                "domain_for_core_training_provider": {
+                    "needs": {"domain": "domain_provider"}, 
+                    "uses": DomainForCoreTrainingProvider,
+                    "fn": "provide",
+                    "config":{},
+                    },
+                "story_graph_provider": {
+                    "needs":{"importer": "finetuning_validator"},
+                    "uses": StoryGraphProvider,
+                    "fn": "provide",
+                    "config":{"exclusion_percentage": cli_parameters.get("exclusion_percentage")},
+                    },
+                "training_tracker_provider": {
+                    "needs": {
+                            "story_graph": "story_graph_provider",
+                            "domain": "domain_for_core_training_provider",
+                        },
+                    "uses": TrainingTrackerProvider,
+                    "fn": "provide",
+                    "config":{
+                        param: cli_parameters[param]
+                        for param in ["debug_plots", "augmentation_factor"]
+                        if param in cli_parameters
+                        },
+                    }
+                }
+        for train_node_type in train_nodes_values:
+            train_nodes[train_node_type] = SchemaNode(
+                needs=train_nodes_values[train_node_type]["needs"],
+                uses=train_nodes_values[train_node_type]["uses"],
+                constructor_name="create",
+                fn=train_nodes_values[train_node_type]["fn"],
+                config=train_nodes_values[train_node_type]["config"],
+                is_target=True,
+                is_input=True,
+            )
 
         policy_with_end_to_end_support_used = False
         for idx, config in enumerate(train_config["policies"]):
