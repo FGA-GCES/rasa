@@ -370,10 +370,9 @@ class LocalTrainingCache(TrainingCache):
 
     def _purge_cache_dir_content(self) -> None:
         for item in self._cache_location.glob("*"):
-            if item.name == self._cache_database_name:
-                continue
-
-            if item.is_dir():
+            
+            item_in_cache_database = item.name == self._cache_database_name
+            if not item_in_cache_database and item.is_dir():
                 shutil.rmtree(item)
             else:
                 item.unlink()
