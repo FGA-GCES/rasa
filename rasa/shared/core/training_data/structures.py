@@ -306,7 +306,6 @@ class StoryStep:
 
 
 class RuleStep(StoryStep):
-    """A Special type of StoryStep representing a Rule."""
 
     def __init__(  # noqa: D107
         self,
@@ -352,7 +351,6 @@ class RuleStep(StoryStep):
         )
 
     def get_rules_condition(self) -> List[Union[Event, List[Event]]]:
-        """Returns a list of events forming a condition of the Rule."""
         return [
             event
             for event_id, event in enumerate(self.events)
@@ -360,7 +358,6 @@ class RuleStep(StoryStep):
         ]
 
     def get_rules_events(self) -> List[Union[Event, List[Event]]]:
-        """Returns a list of events forming the Rule, that are not conditions."""
         return [
             event
             for event_id, event in enumerate(self.events)
@@ -386,7 +383,6 @@ class Story:
 
     @staticmethod
     def from_events(events: List[Event], story_name: Optional[Text] = None) -> "Story":
-        """Create a story from a list of events."""
 
         story_step = StoryStep(story_name)
         for event in events:
@@ -419,7 +415,6 @@ class Story:
 
 
 class StoryGraph:
-    """Graph of the story-steps pooled from all stories in the training data."""
 
     def __init__(
         self,
@@ -469,7 +464,6 @@ class StoryGraph:
         ]
 
     def merge(self, other: Optional["StoryGraph"]) -> "StoryGraph":
-        """Merge two StoryGraph together."""
         if not other:
             return self
 

@@ -12,11 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 class InvalidSlotTypeException(RasaException):
-    """Raised if a slot type is invalid."""
+    pass
 
 
 class InvalidSlotConfigError(RasaException, ValueError):
-    """Raised if a slot's config is invalid."""
+    pass
 
 
 class Slot(ABC):
@@ -109,12 +109,10 @@ class Slot(ABC):
 
     @property
     def value(self) -> Any:
-        """Gets the slot's value."""
         return self._value
 
     @value.setter
     def value(self, value: Any) -> None:
-        """Sets the slot's value."""
         self._value = value
         self._has_been_set = True
 
@@ -166,7 +164,6 @@ class Slot(ABC):
 
 
 class FloatSlot(Slot):
-    """A slot storing a float value."""
 
     type_name = "float"
 
@@ -249,7 +246,7 @@ class BooleanSlot(Slot):
 
 
 def bool_from_any(x: Any) -> bool:
-    """Converts bool/float/int/str to bool or raises error."""
+
     if isinstance(x, bool):
         return x
     elif isinstance(x, (float, int)):
