@@ -309,7 +309,6 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
 
         self._check_config_parameters()
 
-        # transform numbers to labels
         self.index_label_id_mapping = index_label_id_mapping or {}
 
         self._entity_tag_specs = entity_tag_specs
@@ -331,7 +330,6 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         self.finetune_mode = self._execution_context.is_finetuning
         self._sparse_feature_sizes = sparse_feature_sizes
 
-    # init helpers
     def _check_masked_lm(self) -> None:
         if (
             self.component_config[MASKED_LM]
@@ -406,7 +404,6 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
     def model_class() -> Type[RasaModel]:
         return DIET
 
-    # training data helpers:
     @staticmethod
     def _label_id_index_mapping(
         training_data: TrainingData, attribute: Text
@@ -605,7 +602,6 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         logger.debug("No label features found. Computing default label features.")
 
         eye_matrix = np.eye(len(labels_example), dtype=np.float32)
-        # add sequence dimension to one-hot labels
         return [
             FeatureArray(
                 np.array([np.expand_dims(a, 0) for a in eye_matrix]),
@@ -626,7 +622,6 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         If the features are already computed, fetch them from the message object
         else compute a one hot encoding for the label as the feature vector.
         """
-        # Collect one example for each label
         labels_idx_examples = []
         for label_name, idx in label_id_dict.items():
             label_example = self._find_example_for_label(
@@ -695,8 +690,6 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
 
         attributes_to_consider = [TEXT]
         if training and self.component_config[INTENT_CLASSIFICATION]:
-            # we don't have any intent labels during prediction, just add them during
-            # training
             attributes_to_consider.append(label_attribute)
         if (
             training
@@ -708,8 +701,6 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
             attributes_to_consider.append(ENTITIES)
 
         if training and label_attribute is not None:
-            # only use those training examples that have the label_attribute set
-            # during training
             training_data = [
                 example for example in training_data if label_attribute in example.data
             ]
@@ -723,7 +714,6 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         ]
 
         if not training_data:
-            # no training data are present to train
             return RasaModelData()
 
         (
@@ -799,7 +789,6 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
             and model_data.does_feature_not_exist(label_attribute, SENTENCE)
             and model_data.does_feature_not_exist(label_attribute, SEQUENCE)
         ):
-            # no label features are present, get default features from _label_data
             model_data.add_features(
                 LABEL, SENTENCE, self._use_default_label_features(np.array(label_ids))
             )
@@ -813,7 +802,6 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
 
         model_data.add_lengths(LABEL, SEQUENCE_LENGTH, LABEL, SEQUENCE)
 
-    # train helpers
     def preprocess_train_data(self, training_data: TrainingData) -> RasaModelData:
         """Prepares data for training.
 
@@ -827,7 +815,6 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         )
 
         if not label_id_index_mapping:
-            # no labels are present to train
             return RasaModelData()
 
         self.index_label_id_mapping = self._invert_mapping(label_id_index_mapping)
@@ -885,11 +872,9 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         if self.component_config.get(ENTITY_RECOGNITION):
             self.check_correct_entity_annotations(training_data)
 
-        # keep one example for persisting and loading
         self._data_example = model_data.first_data_example()
 
         if not self.finetune_mode:
-            # No pre-trained model to load from. Create a new instance of the model.
             self.model = self._instantiate_model_class(model_data)
             self.model.compile(
                 optimizer=tf.keras.optimizers.Adam(self.component_config[LEARNING_RATE])
@@ -927,14 +912,13 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
             validation_freq=self.component_config[EVAL_NUM_EPOCHS],
             callbacks=callbacks,
             verbose=False,
-            shuffle=False,  # we use custom shuffle inside data generator
+            shuffle=False, 
         )
 
         self.persist()
 
         return self._resource
 
-    # process helpers
     def _predict(
         self, message: Message
     ) -> Optional[Dict[Text, Union[tf.Tensor, Dict[Text, tf.Tensor]]]]:
@@ -946,7 +930,6 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
             )
             return None
 
-        # create session data from message and convert it into a batch of 1
         model_data = self._create_model_data([message], training=False)
         if model_data.is_empty():
             return None
@@ -963,13 +946,12 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
             return label, label_ranking
 
         message_sim = predict_out["i_scores"]
-        message_sim = message_sim.flatten()  # sim is a matrix
+        message_sim = message_sim.flatten() 
 
         # if X contains all zeros do not predict some label
         if message_sim.size == 0:
             return label, label_ranking
 
-        # rank the confidences
         ranking_length = self.component_config[RANKING_LENGTH]
         renormalize = (
             self.component_config[RENORMALIZE_CONFIDENCES]
@@ -979,8 +961,7 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
             message_sim, ranking_length=ranking_length, renormalize=renormalize
         )
 
-        # construct the label and ranking
-        casted_message_sim: List[float] = message_sim.tolist()  # np.float to float
+        casted_message_sim: List[float] = message_sim.tolist() 
         top_label_idx = ranked_label_indices[0]
         label = {
             "name": self.index_label_id_mapping[top_label_idx],
@@ -1189,7 +1170,6 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
             for tag_spec in entity_tag_specs
         ]
 
-        # jsonpickle converts dictionary keys to strings
         index_label_id_mapping = {
             int(key): value for key, value in index_label_id_mapping.items()
         }
@@ -1281,8 +1261,6 @@ class DIET(TransformerRasaModel):
         entity_tag_specs: Optional[List[EntityTagSpec]],
         config: Dict[Text, Any],
     ) -> None:
-        # create entity tag spec before calling super otherwise building the model
-        # will fail
         super().__init__("DIET", config, data_signature, label_data)
         self._entity_tag_specs = self._ordered_tag_specs(entity_tag_specs)
 
@@ -1292,11 +1270,9 @@ class DIET(TransformerRasaModel):
             if TEXT in feature_name
         }
 
-        # tf training
         self._create_metrics()
         self._update_metrics_to_log()
 
-        # needed for efficient prediction
         self.all_labels_embed: Optional[tf.Tensor] = None
 
         self._prepare_layers()
@@ -1375,8 +1351,6 @@ class DIET(TransformerRasaModel):
             self.config[ENTITY_RECOGNITION] = False
 
     def _create_metrics(self) -> None:
-        # self.metrics will have the same order as they are created
-        # so create loss metrics first to output losses first
         self.mask_loss = tf.keras.metrics.Mean(name="m_loss")
         self.intent_loss = tf.keras.metrics.Mean(name="i_loss")
         self.entity_loss = tf.keras.metrics.Mean(name="e_loss")
@@ -1469,14 +1443,10 @@ class DIET(TransformerRasaModel):
             self._prepare_entity_recognition_layers()
 
     def _prepare_mask_lm_loss(self, name: Text) -> None:
-        # for embedding predicted tokens at masked positions
         self._prepare_embed_layers(f"{name}_lm_mask")
 
-        # for embedding the true tokens that got masked
         self._prepare_embed_layers(f"{name}_golden_token")
 
-        # mask loss is additional loss
-        # set scaling to False, so that it doesn't overpower other losses
         self._prepare_dot_product_loss(f"{name}_mask", scale_loss=False)
 
     def _create_bow(
@@ -1492,7 +1462,6 @@ class DIET(TransformerRasaModel):
             training=self._training,
         )
 
-        # convert to bag-of-words by summing along the sequence dimension
         x = tf.reduce_sum(x, axis=1)
 
         return self._tf_layers[f"ffnn.{name}"](x, self._training)
@@ -1522,7 +1491,6 @@ class DIET(TransformerRasaModel):
         mlm_mask_boolean: tf.Tensor,
         name: Text,
     ) -> tf.Tensor:
-        # make sure there is at least one element in the mask
         mlm_mask_boolean = tf.cond(
             tf.reduce_any(mlm_mask_boolean),
             lambda: mlm_mask_boolean,
@@ -1603,8 +1571,6 @@ class DIET(TransformerRasaModel):
 
         losses = []
 
-        # Lengths of sequences in case of sentence-level features are always 1, but they
-        # can effectively be 0 if sentence-level features aren't present.
         sentence_feature_lengths = self._get_sentence_feature_lengths(
             tf_batch_data, TEXT
         )
@@ -1688,8 +1654,6 @@ class DIET(TransformerRasaModel):
                 continue
 
             tag_ids = tf_batch_data[ENTITIES][tag_spec.tag_name][0]
-            # add a zero (no entity) for the sentence features to match the shape of
-            # inputs
             tag_ids = tf.pad(tag_ids, [[0, 0], [0, 1], [0, 0]])
 
             loss, f1, _logits = self._calculate_entity_loss(
@@ -1794,7 +1758,6 @@ class DIET(TransformerRasaModel):
         entity_tags = None
 
         for tag_spec in self._entity_tag_specs:
-            # skip crf layer if it was not trained
             if tag_spec.num_tags == 0:
                 continue
 
@@ -1834,7 +1797,6 @@ class DIET(TransformerRasaModel):
                 "Call `prepare_for_predict` first."
             )
 
-        # get sentence feature vector for intent classification
         sentence_vector = self._last_token(
             text_transformed, combined_sequence_sentence_feature_lengths
         )

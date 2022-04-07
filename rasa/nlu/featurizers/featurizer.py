@@ -78,7 +78,7 @@ class Featurizer(Generic[FeatureType], ABC):
             for config in featurizer_configs
             if FEATURIZER_CLASS_ALIAS in config
         )
-        if not alias_counter:  # no alias found
+        if not alias_counter:  
             return
         if alias_counter.most_common(1)[0][1] > 1:
             raise InvalidConfigException(

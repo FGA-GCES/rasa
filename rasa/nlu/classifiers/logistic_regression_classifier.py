@@ -74,7 +74,6 @@ class LogisticRegressionClassifier(IntentClassifier, GraphComponent):
             l1_ratio=None,
         )
 
-        # We need to use these later when saving the trained component.
         self._model_storage = model_storage
         self._resource = resource
 
@@ -82,9 +81,7 @@ class LogisticRegressionClassifier(IntentClassifier, GraphComponent):
         """This method creates a sparse X array that can be used for predicting."""
         X = []
         for e in messages:
-            # First element is sequence features, second is sentence features
             sparse_feats = e.get_sparse_features(attribute=TEXT)[1]
-            # First element is sequence features, second is sentence features
             dense_feats = e.get_dense_features(attribute=TEXT)[1]
             together = hstack(
                 [

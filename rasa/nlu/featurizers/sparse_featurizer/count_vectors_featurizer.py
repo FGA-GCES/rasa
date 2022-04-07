@@ -102,13 +102,11 @@ class CountVectorsFeaturizer(SparseFeaturizer, GraphComponent):
         # Use shared vocabulary between text and all other attributes of Message
         self.use_shared_vocab = self._config["use_shared_vocab"]
 
-        # set analyzer
         self.analyzer = self._config["analyzer"]
 
         # remove accents during the preprocessing step
         self.strip_accents = self._config["strip_accents"]
-
-        # list of stop words
+        
         self.stop_words = self._config["stop_words"]
 
         # min number of word occurancies in the document to add to vocabulary
@@ -144,7 +142,6 @@ class CountVectorsFeaturizer(SparseFeaturizer, GraphComponent):
             self.OOV_words = []
 
         if self.lowercase and OOV_token:
-            # convert to lowercase
             OOV_token = OOV_token.lower()
             if OOV_words:
                 OOV_words = [w.lower() for w in OOV_words]
@@ -182,7 +179,6 @@ class CountVectorsFeaturizer(SparseFeaturizer, GraphComponent):
     def _attributes_for(analyzer: Text) -> List[Text]:
         """Create a list of attributes that should be featurized."""
 
-        # intents should be featurized only by word level count vectorizer
         return (
             MESSAGE_ATTRIBUTES if analyzer == "word" else DENSE_FEATURIZABLE_ATTRIBUTES
         )
@@ -203,7 +199,6 @@ class CountVectorsFeaturizer(SparseFeaturizer, GraphComponent):
         self._model_storage = model_storage
         self._resource = resource
 
-        # parameters for sklearn's CountVectorizer
         self._load_count_vect_params()
 
         # handling Out-Of-Vocabulary (OOV) words
@@ -213,13 +208,10 @@ class CountVectorsFeaturizer(SparseFeaturizer, GraphComponent):
         else:
             self.OOV_token, self.OOV_words = self._load_vocabulary_params()
 
-        # warn that some of config parameters might be ignored
         self._check_analyzer()
 
-        # set which attributes to featurize
         self._attributes = self._attributes_for(self.analyzer)
 
-        # declare class instance for CountVectorizer
         self.vectorizers = vectorizers or {}
 
         self.finetune_mode = execution_context.is_finetuning
@@ -251,7 +243,6 @@ class CountVectorsFeaturizer(SparseFeaturizer, GraphComponent):
         """Apply processing and cleaning steps to text"""
 
         if attribute in [INTENT, ACTION_NAME, INTENT_RESPONSE_KEY]:
-            # Don't do any processing for intent attribute. Treat them as whole labels
             return tokens
 
         # replace all digits with NUMBER token
@@ -288,8 +279,6 @@ class CountVectorsFeaturizer(SparseFeaturizer, GraphComponent):
         """Get processed text of attribute of a message"""
 
         if message.get(attribute) is None:
-            # return empty list since sklearn countvectorizer does not like None
-            # object while training and predicting
             return []
 
         tokens = self._get_message_tokens_by_attribute(message, attribute)
@@ -335,7 +324,6 @@ class CountVectorsFeaturizer(SparseFeaturizer, GraphComponent):
                 for example in training_data.training_examples
             ]
             if attribute in DENSE_FEATURIZABLE_ATTRIBUTES:
-                # check for oov tokens only in text based attributes
                 self._check_OOV_present(all_tokens, attribute)
             processed_attribute_tokens[attribute] = all_tokens
 
@@ -519,11 +507,9 @@ class CountVectorsFeaturizer(SparseFeaturizer, GraphComponent):
             attribute: Message attribute for which the vectorizer is to be trained.
             attribute_texts: Training texts for the attribute
         """
-        # Get vocabulary words by the preprocessor
         new_vocabulary = self._construct_vocabulary_from_texts(
             self.vectorizers[attribute], attribute_texts
         )
-        # update the vocabulary of vectorizer with new vocabulary
         self._update_vectorizer_vocabulary(attribute, new_vocabulary)
 
     def _fit_vectorizer_from_scratch(
@@ -558,7 +544,6 @@ class CountVectorsFeaturizer(SparseFeaturizer, GraphComponent):
 
         for i, tokens in enumerate(all_tokens):
             if not tokens:
-                # nothing to featurize
                 sequence_features.append(None)
                 sentence_features.append(None)
                 continue
@@ -596,7 +581,6 @@ class CountVectorsFeaturizer(SparseFeaturizer, GraphComponent):
     ]:
         """Returns features of a particular attribute for complete data."""
         if self._get_attribute_vocabulary(attribute) is not None:
-            # count vectorizer was trained
             return self._create_features(attribute, all_tokens)
         else:
             return [], []
@@ -617,12 +601,10 @@ class CountVectorsFeaturizer(SparseFeaturizer, GraphComponent):
                 for t in model.model(w)
             ]
 
-        # process sentences and collect data for all attributes
         processed_attribute_tokens = self._get_all_attributes_processed_tokens(
             training_data
         )
 
-        # train for all attributes
         attribute_texts = self._convert_attribute_tokens_to_texts(
             processed_attribute_tokens
         )
@@ -663,8 +645,6 @@ class CountVectorsFeaturizer(SparseFeaturizer, GraphComponent):
                 message_tokens = self._get_processed_message_tokens_by_attribute(
                     message, attribute
                 )
-
-                # features shape (1, seq, dim)
                 sequence_features, sentence_features = self._create_features(
                     attribute, [message_tokens]
                 )
@@ -700,7 +680,6 @@ class CountVectorsFeaturizer(SparseFeaturizer, GraphComponent):
             return
 
         with self._model_storage.write_to(self._resource) as model_dir:
-            # vectorizer instance was not None, some models could have been trained
             attribute_vocabularies = self._collect_vectorizer_vocabularies()
             if self._is_any_model_trained(attribute_vocabularies):
                 # Definitely need to persist some vocabularies
@@ -818,7 +797,6 @@ class CountVectorsFeaturizer(SparseFeaturizer, GraphComponent):
                     oov_words=oov_words,
                 )
 
-                # make sure the vocabulary has been loaded correctly
                 for attribute in vectorizers:
                     ftr.vectorizers[attribute]._validate_vocabulary()
 

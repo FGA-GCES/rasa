@@ -196,8 +196,6 @@ def map_message_entities(
 
     entities = [convert_entity(entity) for entity in message.get(ENTITIES, [])]
 
-    # entities is a list of tuples (start, end, tag value).
-    # filter out all entities with tag value == NO_ENTITY_TAG.
     tag_value_idx = 2
     return [entity for entity in entities if entity[tag_value_idx] != NO_ENTITY_TAG]
 
@@ -301,7 +299,6 @@ def ensure_consistent_bilou_tagging(
                     predicted_confidences, predicted_tags, tag, tag_score, idx, last_idx
                 )
 
-            # ensure correct BILOU annotations
             if last_idx == idx:
                 predicted_tags[idx] = f"{UNIT}{tag}"
             elif last_idx - idx == 1:
@@ -333,17 +330,15 @@ def _tag_to_use(
     Returns:
         The tag to use. The score of that tag.
     """
-    # Calculate the average confidence per tag.
     avg_confidence_per_tag = _avg_confidence_per_tag(
         relevant_tags, relevant_confidences
     )
-    # Calculate the percentage of tokens assigned to a tag per tag.
+
     tag_counts = Counter(relevant_tags)
     token_percentage_per_tag: Dict[Text, float] = {}
     for tag, count in tag_counts.items():
         token_percentage_per_tag[tag] = round(count / len(relevant_tags), 2)
 
-    # Calculate the harmonic mean between the two metrics per tag.
     score_per_tag = {}
     for tag, token_percentage in token_percentage_per_tag.items():
         avg_confidence = avg_confidence_per_tag[tag]
@@ -353,7 +348,6 @@ def _tag_to_use(
             / (avg_confidence + token_percentage)
         )
 
-    # Take the tag with the highest score as the tag for the entity
     tag, score = max(score_per_tag.items(), key=operator.itemgetter(1))
 
     return tag, score
@@ -439,7 +433,6 @@ def _find_bilou_end(start_idx: int, predicted_tags: List[Text]) -> int:
         tag = tag_without_prefix(current_label)
 
         if tag != start_tag:
-            # words are not tagged the same entity class
             logger.debug(
                 "Inconsistent BILOU tagging found, B- tag, L- tag pair encloses "
                 "multiple entity classes.i.e. [B-a, I-b, L-a] instead of "
@@ -449,10 +442,8 @@ def _find_bilou_end(start_idx: int, predicted_tags: List[Text]) -> int:
         if prefix == LAST:
             finished = True
         elif prefix == INSIDE:
-            # middle part of the entity
             current_idx += 1
         else:
-            # entity not closed by an L- tag
             finished = True
             current_idx -= 1
             logger.debug(

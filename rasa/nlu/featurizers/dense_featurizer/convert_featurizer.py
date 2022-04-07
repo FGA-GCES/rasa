@@ -249,11 +249,9 @@ class ConveRTFeaturizer(DenseFeaturizer, GraphComponent):
     def _compute_sentence_encodings(
         self, batch_examples: List[Message], attribute: Text = TEXT
     ) -> np.ndarray:
-        # Get text for attribute of each example
         batch_attribute_text = [ex.get(attribute) for ex in batch_examples]
         sentence_encodings = self._sentence_encoding_of_text(batch_attribute_text)
 
-        # convert them to a sequence of 1
         return np.reshape(sentence_encodings, (len(batch_examples), 1, -1))
 
     def _compute_sequence_encodings(
@@ -359,8 +357,7 @@ class ConveRTFeaturizer(DenseFeaturizer, GraphComponent):
                 batch_end_index = min(
                     batch_start_index + batch_size, len(non_empty_examples)
                 )
-
-                # Collect batch examples
+                
                 batch_examples = non_empty_examples[batch_start_index:batch_end_index]
 
                 (
@@ -432,7 +429,6 @@ class ConveRTFeaturizer(DenseFeaturizer, GraphComponent):
             # use ConveRT model to tokenize the text
             split_token_strings = self._tokenize(token.text)[0]
 
-            # clean tokens (remove special chars and empty tokens)
             split_token_strings = self._clean_tokens(split_token_strings)
 
             token.set(NUMBER_OF_SUB_TOKENS, len(split_token_strings))

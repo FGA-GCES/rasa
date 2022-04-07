@@ -128,10 +128,8 @@ class MitieEntityExtractor(GraphComponent, EntityExtractorMixin):
         trainer = mitie.ner_trainer(str(model.model_path))
         trainer.num_threads = self._config["num_threads"]
 
-        # check whether there are any (not pre-trained) entities in the training data
         found_one_entity = False
 
-        # filter out pre-trained entity examples
         filtered_entity_examples = self.filter_trainable_entities(
             training_data.nlu_examples
         )
@@ -142,7 +140,6 @@ class MitieEntityExtractor(GraphComponent, EntityExtractorMixin):
             found_one_entity = sample.num_entities > 0 or found_one_entity
             trainer.add(sample)
 
-        # Mitie will fail to train if there is not a single entity tagged
         if found_one_entity:
             self._ner = trainer.train()
         else:
@@ -166,7 +163,6 @@ class MitieEntityExtractor(GraphComponent, EntityExtractorMixin):
         sample = mitie.ner_training_instance([t.text for t in tokens])
         for ent in training_example.get(ENTITIES, []):
             try:
-                # if the token is not aligned an exception will be raised
                 start, end = MitieEntityExtractor.find_entity(ent, text, tokens)
             except ValueError as e:
                 rasa.shared.utils.io.raise_warning(

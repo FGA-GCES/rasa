@@ -1,7 +1,7 @@
-import argparse
 import os
 from typing import Text, Union
 
+from rasa.shared.nlu.training_data.formats.rasa_yaml import RasaYAMLWriter
 from rasa.shared.utils.cli import print_error
 import rasa.shared.nlu.training_data.loading
 from rasa.nlu.utils import write_to_file
@@ -10,8 +10,7 @@ from rasa.nlu.utils import write_to_file
 def convert_training_data(
     data_file: Union[list, Text], out_file: Text, output_format: Text, language: Text
 ) -> None:
-    """Convert training data.
-
+    """
     Args:
         data_file (Union[list, Text]): Path to the file or directory
             containing Rasa data.
@@ -31,18 +30,10 @@ def convert_training_data(
         )
         return
 
+    td = rasa.shared.nlu.training_data.loading.load_data(data_file, language)
     if output_format == "json":
-        td = rasa.shared.nlu.training_data.loading.load_data(data_file, language)
         output = td.nlu_as_json(indent=2)
     else:
-        print_error(
-            "Did not recognize output format. Supported output formats: 'json' and "
-            "'md'. Specify the desired output format with '--format'."
-        )
-        return
+        output = RasaYAMLWriter().dumps(td)
 
     write_to_file(out_file, output)
-
-
-def main(args: argparse.Namespace) -> None:
-    convert_training_data(args.data, args.out, args.format, args.language)

@@ -95,8 +95,6 @@ class MitieIntentClassifier(GraphComponent, IntentClassifier):
                 token_strs = self._tokens_of_message(message)
                 intent, confidence = self._clf(token_strs, model.word_feature_extractor)
             else:
-                # either the model didn't get trained or it wasn't
-                # provided with any data
                 intent = None
                 confidence = 0.0
 

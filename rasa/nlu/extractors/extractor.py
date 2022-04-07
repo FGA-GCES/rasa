@@ -205,8 +205,6 @@ class EntityExtractorMixin(abc.ABC):
             )
 
             if bilou_utils.bilou_prefix_from_tag(current_entity_tag):
-                # checks for new bilou tag
-                # new bilou tag begins are not with I- , L- tags
                 new_bilou_tag_starts = last_entity_tag != current_entity_tag and (
                     bilou_utils.LAST
                     != bilou_utils.bilou_prefix_from_tag(current_entity_tag)
@@ -214,8 +212,6 @@ class EntityExtractorMixin(abc.ABC):
                     != bilou_utils.bilou_prefix_from_tag(current_entity_tag)
                 )
 
-                # to handle bilou tags such as only I-, L- tags without B-tag
-                # and handle multiple U-tags consecutively
                 new_unigram_bilou_tag_starts = (
                     last_entity_tag == NO_ENTITY_TAG
                     or bilou_utils.UNIT
@@ -236,7 +232,6 @@ class EntityExtractorMixin(abc.ABC):
                 last_entity_tag = current_entity_tag
 
             if new_tag_found:
-                # new entity found
                 entity = EntityExtractorMixin._create_new_entity(
                     list(tags.keys()),
                     current_entity_tag,
@@ -250,10 +245,6 @@ class EntityExtractorMixin(abc.ABC):
             elif EntityExtractorMixin._check_is_single_entity(
                 text, token, last_token_end, split_entities_config, current_entity_tag
             ):
-                # current token has the same entity tag as the token before and
-                # the two tokens are separated by at most 3 symbols, where each
-                # of the symbols has to be either punctuation (e.g. "." or ",")
-                # and a whitespace.
                 entities[-1][ENTITY_ATTRIBUTE_END] = token.end
                 if confidences is not None:
                     EntityExtractorMixin._update_confidence_values(

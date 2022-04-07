@@ -29,7 +29,7 @@ MESSAGE_ATTRIBUTES = [
     rasa.shared.nlu.constants.ACTION_TEXT,
     rasa.shared.nlu.constants.INTENT_RESPONSE_KEY,
 ]
-# the dense featurizable attributes are essentially text attributes
+
 DENSE_FEATURIZABLE_ATTRIBUTES = [
     rasa.shared.nlu.constants.TEXT,
     rasa.shared.nlu.constants.RESPONSE,

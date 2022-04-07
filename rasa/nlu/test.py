@@ -411,7 +411,6 @@ def evaluate_response_selections(
 
     Returns: dictionary with evaluation results
     """
-    # remove empty response targets
     num_examples = len(response_selection_results)
     response_selection_results = remove_empty_response_examples(
         response_selection_results
@@ -445,7 +444,6 @@ def evaluate_response_selections(
         successes_filename = "response_selection_successes.json"
         if output_directory:
             successes_filename = os.path.join(output_directory, successes_filename)
-        # save classified samples to file for debugging
         write_response_successes(response_selection_results, successes_filename)
 
     response_errors = _response_errors(response_selection_results)
@@ -525,7 +523,6 @@ def _add_confused_labels_to_report(
     if exclude_labels is None:
         exclude_labels = []
 
-    # sort confusion matrix by false positives
     indices = np.argsort(confusion_matrix, axis=1)
     n_candidates = min(3, len(labels))
 
@@ -579,7 +576,7 @@ def evaluate_intents(
 
     Returns: dictionary with evaluation results
     """
-    # remove empty intent targets
+
     num_examples = len(intent_results)
     intent_results = remove_empty_intent_examples(intent_results)
 
@@ -600,7 +597,7 @@ def evaluate_intents(
 
     if successes and output_directory:
         successes_filename = os.path.join(output_directory, "intent_successes.json")
-        # save classified samples to file for debugging
+
         write_intent_successes(intent_results, successes_filename)
 
     intent_errors = _get_intent_errors(intent_results)
@@ -674,7 +671,7 @@ def _calculate_report(
     )
 
     if report_as_dict:
-        report = _add_confused_labels_to_report(  # type: ignore[assignment]
+        report = _add_confused_labels_to_report(  
             report,
             confusion_matrix,
             labels,
@@ -894,7 +891,6 @@ def evaluate_entities(
             successes_filename = f"{extractor}_successes.json"
             if output_directory:
                 successes_filename = os.path.join(output_directory, successes_filename)
-            # save classified samples to file for debugging
             write_successful_entity_predictions(
                 entity_results, merged_targets, merged_predictions, successes_filename
             )
@@ -1464,8 +1460,6 @@ def generate_folds(
     skf = StratifiedKFold(n_splits=n, shuffle=True)
     x = training_data.intent_examples
 
-    # Get labels as they appear in the training data because we want a
-    # stratified split on all intents(including retrieval intents if they exist)
     y = [example.get_full_intent() for example in x]
     for i_fold, (train_index, test_index) in enumerate(skf.split(x, y)):
         logger.debug(f"Fold: {i_fold}")
@@ -1622,7 +1616,7 @@ async def cross_validate(
 
             processor = Agent.load(model_file).processor
 
-            # calculate train accuracy
+
             await combine_result(
                 intent_train_metrics,
                 entity_train_metrics,
@@ -1630,7 +1624,7 @@ async def cross_validate(
                 processor,
                 train,
             )
-            # calculate test accuracy
+
             await combine_result(
                 intent_test_metrics,
                 entity_test_metrics,
@@ -1809,7 +1803,7 @@ async def compare_nlu(
             percent_string = f"{percentage}%_exclusion"
 
             _, train_included = train.train_test_split(percentage / 100)
-            # only count for the first run and ignore the others
+
             if run == 0:
                 training_examples_per_run.append(len(train_included.nlu_examples))
 
@@ -1876,7 +1870,6 @@ def _compute_metrics(
     """
     from rasa.model_testing import get_evaluation_metrics
 
-    # compute fold metrics
     targets, predictions = _targets_predictions_from(
         results, target_key, prediction_key
     )

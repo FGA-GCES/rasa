@@ -93,11 +93,8 @@ class Tokenizer(GraphComponent, abc.ABC):
     def __init__(self, config: Dict[Text, Any]) -> None:
         """Construct a new tokenizer."""
         self._config = config
-        # flag to check whether to split intents
         self.intent_tokenization_flag = config["intent_tokenization_flag"]
-        # split symbol for intents
         self.intent_split_symbol = config["intent_split_symbol"]
-        # token pattern to further split tokens
         token_pattern = config.get("token_pattern")
         self.token_pattern_regex = None
         if token_pattern:
@@ -163,8 +160,6 @@ class Tokenizer(GraphComponent, abc.ABC):
     def _split_name(self, message: Message, attribute: Text = INTENT) -> List[Token]:
         text = message.get(attribute)
 
-        # for INTENT_RESPONSE_KEY attribute,
-        # first split by RESPONSE_IDENTIFIER_DELIMITER
         if attribute == INTENT_RESPONSE_KEY:
             intent, response_key = text.split(RESPONSE_IDENTIFIER_DELIMITER)
             words = self._tokenize_on_split_symbol(

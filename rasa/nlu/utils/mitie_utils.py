@@ -55,8 +55,6 @@ class MitieNLP(GraphComponent):
     def get_default_config() -> Dict[Text, Any]:
         """Returns default config (see parent class for full docstring)."""
         return {
-            # name of the language model to load - this contains
-            # the MITIE feature extractor
             "model": Path("data", "total_word_feature_extractor.dat")
         }
 

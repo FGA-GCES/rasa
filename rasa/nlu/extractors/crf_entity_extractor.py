@@ -294,7 +294,6 @@ class CRFEntityExtractor(GraphComponent, EntityExtractorMixin):
 
         predictions: Dict[Text, List[Dict[Text, float]]] = {}
         for tag_name, entity_tagger in self.entity_taggers.items():
-            # use predicted entity tags as features for second level CRFs
             include_tag_features = tag_name != ENTITY_ATTRIBUTE_TYPE
             if include_tag_features:
                 self._add_tag_to_crf_token(crf_tokens, predictions)
@@ -302,7 +301,6 @@ class CRFEntityExtractor(GraphComponent, EntityExtractorMixin):
             features = self._crf_tokens_to_features(crf_tokens, include_tag_features)
             predictions[tag_name] = entity_tagger.predict_marginals_single(features)
 
-        # convert predictions into a list of tags and a list of confidences
         tags, confidences = self._tag_confidences(tokens, predictions)
 
         return self.convert_predictions_into_entities(
@@ -484,7 +482,6 @@ class CRFEntityExtractor(GraphComponent, EntityExtractorMixin):
             else:
                 token = crf_tokens[current_token_idx]
 
-                # get the features to extract for the token we are currently looking at
                 current_feature_idx = pointer_position + half_window_size
                 features = configured_features[current_feature_idx]
 
@@ -644,7 +641,6 @@ class CRFEntityExtractor(GraphComponent, EntityExtractorMixin):
         for tag_name in self.crf_order:
             logger.debug(f"Training CRF for '{tag_name}'.")
 
-            # add entity tag features for second level CRFs
             include_tag_features = tag_name != ENTITY_ATTRIBUTE_TYPE
             X_train = (
                 self._crf_tokens_to_features(sentence, include_tag_features)
@@ -656,13 +652,9 @@ class CRFEntityExtractor(GraphComponent, EntityExtractorMixin):
 
             entity_tagger = sklearn_crfsuite.CRF(
                 algorithm="lbfgs",
-                # coefficient for L1 penalty
                 c1=self.component_config["L1_c"],
-                # coefficient for L2 penalty
                 c2=self.component_config["L2_c"],
-                # stop earlier
                 max_iterations=self.component_config["max_iterations"],
-                # include transitions that are possible, but not observed
                 all_possible_transitions=True,
             )
             entity_tagger.fit(X_train, y_train)

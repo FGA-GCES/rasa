@@ -176,8 +176,6 @@ class DucklingEntityExtractor(GraphComponent, EntityExtractorMixin):
                     "current UTC time will be passed to "
                     "duckling. Error: {}".format(message.time, e)
                 )
-        # fallbacks to current time, multiplied by 1000 because duckling
-        # requires the reftime in milliseconds
         return int(time.time()) * 1000
 
     def process(self, messages: List[Message]) -> List[Message]:

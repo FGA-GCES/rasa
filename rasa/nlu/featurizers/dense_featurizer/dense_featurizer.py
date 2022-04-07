@@ -37,11 +37,9 @@ class DenseFeaturizer(Featurizer[np.ndarray], ABC):
             )
 
         if only_non_zero_vectors:
-            # take only non zeros feature vectors into account
             is_non_zero_vector = [f.any() for f in dense_sequence_features]
             dense_sequence_features = dense_sequence_features[is_non_zero_vector]
 
-            # if features are all zero, then we must continue with zeros
             if not len(dense_sequence_features):
                 dense_sequence_features = np.zeros([1, shape[-1]])
 

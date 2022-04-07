@@ -19,7 +19,6 @@ def cleanup_tokens(
         (id, string.replace(delimiter, "")) for id, string in token_ids_string
     ]
 
-    # remove empty strings
     token_ids_string = [(id, string) for id, string in token_ids_string if string]
 
     # return as individual token ids and token strings

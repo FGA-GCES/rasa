@@ -75,8 +75,7 @@ class RegexEntityExtractor(GraphComponent, EntityExtractorMixin):
         resource: Resource,
         patterns: Optional[List[Dict[Text, Text]]] = None,
     ) -> None:
-        """Creates a new instance.
-
+        """
         Args:
             config: The configuration.
             model_storage: Storage which graph components can use to persist and load

@@ -65,11 +65,6 @@ class SpacyNLP(GraphComponent):
     def get_default_config() -> Dict[Text, Any]:
         """Default config."""
         return {
-            # when retrieving word vectors, this will decide if the casing
-            # of the word is relevant. E.g. `hello` and `Hello` will
-            # retrieve the same vector, if set to `False`. For some
-            # applications and models it makes sense to differentiate
-            # between these two words, therefore setting this to `True`.
             "case_sensitive": False
         }
 
@@ -134,9 +129,6 @@ class SpacyNLP(GraphComponent):
                 "Loading the model returned 'None'."
             )
         if nlp.path is None:
-            # Spacy sets the path to `None` if
-            # it did not load the model from disk.
-            # In this case `nlp` is an unusable stub.
             raise Exception(
                 f"Failed to load SpaCy language model for "
                 f"lang '{nlp.lang}'. Make sure you have downloaded the "
@@ -155,10 +147,6 @@ class SpacyNLP(GraphComponent):
     def _preprocess_text(self, text: Optional[Text]) -> Text:
         """Processes the text before it is handled by SpaCy."""
         if text is None:
-            # converted to empty string so that it can still be passed to spacy.
-            # Another option could be to neglect tokenization of the attribute of
-            # this example, but since we are processing in batch mode, it would
-            # get complex to collect all processed and neglected examples.
             text = ""
         if self._config.get("case_sensitive"):
             return text
@@ -240,8 +228,6 @@ class SpacyNLP(GraphComponent):
             texts = [
                 self._get_text(e, attribute) for e in training_data.training_examples
             ]
-            # Index and freeze indices of the training samples for preserving the order
-            # after processing the data.
             indexed_training_samples = [(idx, text) for idx, text in enumerate(texts)]
 
             samples_to_pipe, empty_samples = self._filter_training_samples_by_content(
@@ -261,8 +247,6 @@ class SpacyNLP(GraphComponent):
                 content_bearing_docs + non_content_bearing_docs,
             )
 
-            # Since we only need the training samples strings,
-            # we create a list to get them out of the tuple.
             attribute_docs[attribute] = [doc for _, doc in attribute_document_list]
         return attribute_docs
 
@@ -277,9 +261,6 @@ class SpacyNLP(GraphComponent):
             for idx, example in enumerate(training_data.training_examples):
                 example_attribute_doc = attribute_docs[attribute][idx]
                 if len(example_attribute_doc):
-                    # If length is 0, that means the initial text feature
-                    # was None and was replaced by ''
-                    # in preprocess method
                     example.set(SPACY_DOCS[attribute], example_attribute_doc)
 
         return training_data

@@ -274,7 +274,6 @@ class LanguageModelFeaturizer(DenseFeaturizer, GraphComponent):
         token_ids_out = []
 
         for token in tokens_in:
-            # use lm specific tokenizer to further tokenize the text
             split_token_ids, split_token_strings = self._lm_tokenize(token.text)
 
             if not split_token_ids:
@@ -498,7 +497,6 @@ class LanguageModelFeaturizer(DenseFeaturizer, GraphComponent):
             inference_mode: whether this is during training or inference
         """
         if self.max_model_sequence_length == NO_LENGTH_RESTRICTION:
-            # There is no restriction on sequence length from the model
             return
 
         for sequence_length, example in zip(actual_sequence_lengths, batch_examples):
@@ -587,70 +585,53 @@ class LanguageModelFeaturizer(DenseFeaturizer, GraphComponent):
         Returns:
             Sentence and token level dense representations.
         """
-        # Let's first add tokenizer specific special tokens to all examples
         batch_token_ids_augmented = self._add_lm_specific_special_tokens(
             batch_token_ids
         )
 
-        # Compute sequence lengths for all examples
         (
             actual_sequence_lengths,
             max_input_sequence_length,
         ) = self._extract_sequence_lengths(batch_token_ids_augmented)
 
-        # Validate that all sequences can be processed based on their sequence
-        # lengths and the maximum sequence length the model can handle
         self._validate_sequence_lengths(
             actual_sequence_lengths, batch_examples, attribute, inference_mode
         )
 
-        # Add padding so that whole batch can be fed to the model
         padded_token_ids = self._add_padding_to_batch(
             batch_token_ids_augmented, max_input_sequence_length
         )
 
-        # Compute attention mask based on actual_sequence_length
         batch_attention_mask = self._compute_attention_mask(
             actual_sequence_lengths, max_input_sequence_length
         )
 
-        # Get token level features from the model
         sequence_hidden_states = self._compute_batch_sequence_features(
             batch_attention_mask, padded_token_ids
         )
 
-        # Extract features for only non-padding tokens
         sequence_nonpadded_embeddings = self._extract_nonpadded_embeddings(
             sequence_hidden_states, actual_sequence_lengths
         )
 
-        # Extract sentence level and post-processed features
         (
             sentence_embeddings,
             sequence_embeddings,
         ) = self._post_process_sequence_embeddings(sequence_nonpadded_embeddings)
 
-        # Pad zeros for examples which were truncated in inference mode.
-        # This is intentionally done after sentence embeddings have been
-        # extracted so that they are not affected
         sequence_embeddings = self._add_extra_padding(
             sequence_embeddings, actual_sequence_lengths
         )
 
-        # shape of matrix for all sequence embeddings
         batch_dim = len(sequence_embeddings)
         seq_dim = max(e.shape[0] for e in sequence_embeddings)
         feature_dim = sequence_embeddings[0].shape[1]
         shape = (batch_dim, seq_dim, feature_dim)
 
-        # align features with tokens so that we have just one vector per token
-        # (don't include sub-tokens)
         sequence_embeddings = train_utils.align_token_features(
             batch_tokens, sequence_embeddings, shape
         )
 
-        # sequence_embeddings is a padded numpy array
-        # remove the padding, keep just the non-zero vectors
         sequence_final_embeddings = []
         for embeddings, tokens in zip(sequence_embeddings, batch_tokens):
             sequence_final_embeddings.append(embeddings[: len(tokens)])
@@ -722,11 +703,8 @@ class LanguageModelFeaturizer(DenseFeaturizer, GraphComponent):
                 batch_end_index = min(
                     batch_start_index + batch_size, len(non_empty_examples)
                 )
-                # Collect batch examples
                 batch_messages = non_empty_examples[batch_start_index:batch_end_index]
 
-                # Construct a doc with relevant features
-                # extracted(tokens, dense_features)
                 batch_docs = self._get_docs_for_batch(batch_messages, attribute)
 
                 for index, ex in enumerate(batch_messages):

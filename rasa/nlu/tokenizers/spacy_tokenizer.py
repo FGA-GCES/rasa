@@ -28,11 +28,8 @@ class SpacyTokenizer(Tokenizer):
     def get_default_config() -> Dict[Text, Any]:
         """The component's default config (see parent class for full docstring)."""
         return {
-            # Flag to check whether to split intents
             "intent_tokenization_flag": False,
-            # Symbol on which intent should be split
             "intent_split_symbol": "_",
-            # Regular expression to detect tokens
             "token_pattern": None,
         }
 

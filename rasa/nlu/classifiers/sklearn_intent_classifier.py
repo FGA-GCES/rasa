@@ -136,7 +136,6 @@ class SklearnIntentClassifier(GraphComponent, IntentClassifier):
         X = np.stack(
             [self._get_sentence_features(example) for example in training_examples]
         )
-        # reduce dimensionality
         X = np.reshape(X, (len(X), -1))
 
         self.clf = self._create_classifier(num_threads, y)
@@ -199,9 +198,6 @@ class SklearnIntentClassifier(GraphComponent, IntentClassifier):
             if self.clf is None or not message.features_present(
                 attribute=TEXT, featurizers=self.component_config.get(FEATURIZERS)
             ):
-                # component is either not trained or didn't
-                # receive enough training data or the input doesn't
-                # have required features.
                 intent = None
                 intent_ranking = []
             else:
@@ -209,8 +205,6 @@ class SklearnIntentClassifier(GraphComponent, IntentClassifier):
 
                 intent_ids, probabilities = self.predict(X)
                 intents = self.transform_labels_num2str(np.ravel(intent_ids))
-                # `predict` returns a matrix as it is supposed
-                # to work for multiple examples as well, hence we need to flatten
                 probabilities = probabilities.flatten()
 
                 if intents.size > 0 and probabilities.size > 0:
@@ -258,8 +252,6 @@ class SklearnIntentClassifier(GraphComponent, IntentClassifier):
                  its probability.
         """
         pred_result = self.predict_prob(X)
-        # sort the probabilities retrieving the indices of
-        # the elements in sorted order
         sorted_indices = np.fliplr(np.argsort(pred_result, axis=1))
         return sorted_indices, pred_result[:, sorted_indices]
 

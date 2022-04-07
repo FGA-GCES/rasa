@@ -50,18 +50,14 @@ def _generate_lookup_regex(
     """
     lookup_elements = lookup_table["elements"]
 
-    # if it's a list, it should be the elements directly
     if isinstance(lookup_elements, list):
         elements_to_regex = lookup_elements
-    # otherwise it's a file path.
     else:
         elements_to_regex = read_lookup_table_file(lookup_elements)
 
-    # sanitize the regex, escape special characters
     elements_sanitized = [re.escape(e) for e in elements_to_regex]
 
     if use_word_boundaries:
-        # regex matching elements with word boundaries on either side
         return "(\\b" + "\\b|\\b".join(elements_sanitized) + "\\b)"
     else:
         return "(" + "|".join(elements_sanitized) + ")"
@@ -154,7 +150,6 @@ def extract_patterns(
             )
         )
 
-    # validate regexes, raise Error when invalid
     for pattern in patterns:
         try:
             re.compile(pattern["pattern"])

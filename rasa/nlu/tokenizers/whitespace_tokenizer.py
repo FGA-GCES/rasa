@@ -30,11 +30,8 @@ class WhitespaceTokenizer(Tokenizer):
     def get_default_config() -> Dict[Text, Any]:
         """Returns the component's default config."""
         return {
-            # Flag to check whether to split intents
             "intent_tokenization_flag": False,
-            # Symbol on which intent should be split
             "intent_split_symbol": "_",
-            # Regular expression to detect tokens
             "token_pattern": None,
         }
 
@@ -59,7 +56,6 @@ class WhitespaceTokenizer(Tokenizer):
         execution_context: ExecutionContext,
     ) -> WhitespaceTokenizer:
         """Creates a new component (see parent class for full docstring)."""
-        # Path to the dictionaries on the local filesystem.
         return cls(config)
 
     def remove_emoji(self, text: Text) -> Text:
@@ -95,7 +91,6 @@ class WhitespaceTokenizer(Tokenizer):
         words = [self.remove_emoji(w) for w in words]
         words = [w for w in words if w]
 
-        # if we removed everything like smiles `:)`, use the whole text as 1 token
         if not words:
             words = [text]
 

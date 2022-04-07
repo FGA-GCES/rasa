@@ -91,7 +91,6 @@ def print_run_or_instructions(args: argparse.Namespace) -> None:
     )
 
     if should_run:
-        # provide defaults for command line arguments
         attributes = [
             "endpoints",
             "credentials",

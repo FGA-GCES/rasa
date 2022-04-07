@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 def add_subparser(
     subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
 ) -> None:
-    """Add all interactive cli parsers.
+    """
 
     Args:
         subparsers: subparser we are going to attach to
@@ -105,7 +105,7 @@ def perform_interactive_learning(
     zipped_model: Union[Text, "Path"],
     file_importer: TrainingDataImporter,
 ) -> None:
-    """Performs interactive learning.
+    """
 
     Args:
         args: Namespace arguments.

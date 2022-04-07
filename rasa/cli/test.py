@@ -34,8 +34,7 @@ logger = logging.getLogger(__name__)
 def add_subparser(
     subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
 ) -> None:
-    """Add all test parsers.
-
+    """
     Args:
         subparsers: subparser we are going to attach to
         parents: Parent parsers, needed to ensure tree structure in argparse
@@ -265,8 +264,7 @@ def run_nlu_test(args: argparse.Namespace) -> None:
 
 
 def run_core_test(args: argparse.Namespace) -> None:
-    """Runs Core tests.
-
+    """
     Args:
         args: the parsed CLI arguments for 'rasa test core'.
     """

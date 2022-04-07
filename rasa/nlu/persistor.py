@@ -62,7 +62,6 @@ class Persistor(abc.ABC):
         tar_name = model_name
 
         if not model_name.endswith("tar.gz"):
-            # ensure backward compatibility
             tar_name = self._tar_name(model_name)
 
         self._retrieve_tar(tar_name)
@@ -135,13 +134,12 @@ class AWSPersistor(Persistor):
             region_name = boto3.DEFAULT_SESSION.region_name
 
         bucket_config = {"LocationConstraint": region_name}
-        # noinspection PyUnresolvedReferences
         try:
             self.s3.create_bucket(
                 Bucket=bucket_name, CreateBucketConfiguration=bucket_config
             )
         except botocore.exceptions.ClientError:
-            pass  # bucket already exists
+            pass  
 
     def _persist_tar(self, file_key: Text, tar_path: Text) -> None:
         """Uploads a model persisted in the `target_dir` to s3."""
@@ -163,9 +161,7 @@ class GCSPersistor(Persistor):
 
     def __init__(self, bucket_name: Text) -> None:
         """Initialise class with client and bucket."""
-        # there are no type hints in this repo for now
-        # https://github.com/googleapis/python-storage/issues/393
-        from google.cloud import storage  # type: ignore[attr-defined]
+        from google.cloud import storage 
 
         super().__init__()
 
@@ -181,7 +177,6 @@ class GCSPersistor(Persistor):
         try:
             self.storage_client.create_bucket(bucket_name)
         except exceptions.Conflict:
-            # bucket exists
             pass
 
     def _persist_tar(self, file_key: Text, tar_path: Text) -> None:
@@ -221,7 +216,6 @@ class AzurePersistor(Persistor):
         try:
             self.blob_service.create_container(container_name)
         except ResourceExistsError:
-            # no need to create the container, it already exists
             pass
 
     def _container_client(self) -> "ContainerClient":

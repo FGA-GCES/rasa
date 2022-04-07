@@ -121,7 +121,6 @@ class RegexFeaturizer(SparseFeaturizer, GraphComponent):
             use_word_boundaries=self._config["use_word_boundaries"],
         )
         if self.finetune_mode:
-            # Merge patterns extracted from data with known patterns
             self._merge_new_patterns(patterns_from_data)
         else:
             self.known_patterns = patterns_from_data
@@ -181,14 +180,12 @@ class RegexFeaturizer(SparseFeaturizer, GraphComponent):
         Returns:
            Token and sentence level features of message attribute.
         """
-        # Attribute not set (e.g. response not present)
         if not message.get(attribute):
             return None, None
 
         tokens = message.get(TOKENS_NAMES[attribute], [])
 
         if not tokens:
-            # nothing to featurize
             return None, None
 
         flags = 0  # default flag

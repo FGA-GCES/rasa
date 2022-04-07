@@ -33,13 +33,10 @@ class JiebaTokenizer(Tokenizer):
     def get_default_config() -> Dict[Text, Any]:
         """Returns default config (see parent class for full docstring)."""
         return {
-            # default don't load custom dictionary
             "dictionary_path": None,
-            # Flag to check whether to split intents
             "intent_tokenization_flag": False,
-            # Symbol on which intent should be split
             "intent_split_symbol": "_",
-            # Regular expression to detect tokens
+
             "token_pattern": None,
         }
 
@@ -60,7 +57,6 @@ class JiebaTokenizer(Tokenizer):
         execution_context: ExecutionContext,
     ) -> JiebaTokenizer:
         """Creates a new component (see parent class for full docstring)."""
-        # Path to the dictionaries on the local filesystem.
         dictionary_path = config["dictionary_path"]
 
         if dictionary_path is not None:
@@ -115,8 +111,6 @@ class JiebaTokenizer(Tokenizer):
         """Loads a custom dictionary from model storage."""
         dictionary_path = config["dictionary_path"]
 
-        # If a custom dictionary path is in the config we know that it should have
-        # been saved to the model storage.
         if dictionary_path is not None:
             try:
                 with model_storage.read_from(resource) as resource_directory:
@@ -130,7 +124,6 @@ class JiebaTokenizer(Tokenizer):
 
     @staticmethod
     def _copy_files_dir_to_dir(input_dir: Text, output_dir: Text) -> None:
-        # make sure target path exists
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 

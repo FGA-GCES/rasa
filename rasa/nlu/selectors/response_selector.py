@@ -303,7 +303,6 @@ class ResponseSelector(DIETClassifier):
         component_config[ENTITY_RECOGNITION] = False
         component_config[BILOU_FLAG] = None
 
-        # Initialize defaults
         self.responses = responses or {}
         self.all_retrieval_intents = all_retrieval_intents or []
         self.retrieval_intent = None
@@ -362,13 +361,10 @@ class ResponseSelector(DIETClassifier):
         config_for_disabling_hidden_layers: Dict[Text, List[Any]] = {
             k: [] for k, _ in default_config[HIDDEN_LAYERS_SIZES].items()
         }
-        # warn if the hidden layers aren't disabled
         if (
             self.component_config[HIDDEN_LAYERS_SIZES]
             != config_for_disabling_hidden_layers
         ):
-            # make the warning text more contextual by explaining what the user did
-            # to the hidden layers' config (i.e. what it is they should change)
             if hidden_layers_is_at_default_value:
                 what_user_did = "left the hidden layer sizes at their default value:"
             else:
@@ -422,8 +418,6 @@ class ResponseSelector(DIETClassifier):
         """Checks that component configuration makes sense; corrects it where needed."""
         super()._check_config_parameters()
         self._load_selector_params()
-        # Once general DIET-related parameters have been checked, check also the ones
-        # specific to ResponseSelector.
         self._check_config_params_when_transformer_enabled()
 
     def _set_message_property(
@@ -448,7 +442,6 @@ class ResponseSelector(DIETClassifier):
         Args:
             training_data: training data to preprocessed.
         """
-        # Collect all retrieval intents present in the data before filtering
         self.all_retrieval_intents = list(training_data.retrieval_intents)
 
         if self.retrieval_intent:
@@ -472,7 +465,6 @@ class ResponseSelector(DIETClassifier):
         self.responses = training_data.responses
 
         if not label_id_index_mapping:
-            # no labels are present to train
             return RasaModelData()
 
         self.index_label_id_mapping = self._invert_mapping(label_id_index_mapping)
@@ -511,7 +503,6 @@ class ResponseSelector(DIETClassifier):
             if search_key == label.get("name"):
                 return search_key
 
-            # Otherwise loop over the responses to check if the text has a direct match
             for response in responses:
                 if response.get(TEXT, "") == label.get("name"):
                     return search_key
@@ -531,8 +522,7 @@ class ResponseSelector(DIETClassifier):
             out = self._predict(message)
             top_label, label_ranking = self._predict_label(out)
 
-            # Get the exact intent_response_key and the associated
-            # responses for the top predicted label
+
             label_intent_response_key = (
                 self._resolve_intent_response_key(top_label)
                 or top_label[INTENT_NAME_KEY]
@@ -556,9 +546,6 @@ class ResponseSelector(DIETClassifier):
                 label[INTENT_RESPONSE_KEY] = (
                     self._resolve_intent_response_key(label) or label[INTENT_NAME_KEY]
                 )
-                # Remove the "name" key since it is either the same as
-                # "intent_response_key" or it is the response text which
-                # is not needed in the ranking.
                 label.pop(INTENT_NAME_KEY)
 
             selector_key = (
@@ -753,11 +740,8 @@ class DIET2DIET(DIET):
             )
 
     def _create_metrics(self) -> None:
-        # self.metrics preserve order
-        # output losses first
         self.mask_loss = tf.keras.metrics.Mean(name="m_loss")
         self.response_loss = tf.keras.metrics.Mean(name="r_loss")
-        # output accuracies second
         self.mask_acc = tf.keras.metrics.Mean(name="m_acc")
         self.response_acc = tf.keras.metrics.Mean(name="r_acc")
 
@@ -787,9 +771,6 @@ class DIET2DIET(DIET):
         self.text_name = TEXT
         self.label_name = TEXT if self.config[SHARE_HIDDEN_LAYERS] else LABEL
 
-        # For user text and response text, prepare layers that combine different feature
-        # types, embed everything using a transformer and optionally also do masked
-        # language modeling. Omit input dropout for label features.
         label_config = self.config.copy()
         label_config.update({SPARSE_INPUT_DROPOUT: False, DENSE_INPUT_DROPOUT: False})
         for attribute, config in [
@@ -814,7 +795,6 @@ class DIET2DIET(DIET):
             self.tf_label_data, LABEL
         )
 
-        # Combine all feature types into one and embed using a transformer.
         label_transformed, _, _, _, _, _ = self._tf_layers[
             f"sequence_layer.{self.label_name}"
         ](
@@ -856,7 +836,6 @@ class DIET2DIET(DIET):
         """
         tf_batch_data = self.batch_to_model_data_format(batch_in, self.data_signature)
 
-        # Process all features for text.
         sequence_feature_lengths_text = self._get_sequence_feature_lengths(
             tf_batch_data, TEXT
         )
@@ -876,7 +855,6 @@ class DIET2DIET(DIET):
             training=self._training,
         )
 
-        # Process all features for labels.
         sequence_feature_lengths_label = self._get_sequence_feature_lengths(
             tf_batch_data, LABEL
         )
@@ -975,7 +953,6 @@ class DIET2DIET(DIET):
         if self.all_labels_embed is None:
             _, self.all_labels_embed = self._create_all_labels()
 
-        # get sentence feature vector for intent classification
         sentence_vector = self._last_token(text_transformed, sequence_feature_lengths)
         sentence_vector_embed = self._tf_layers[f"embed.{TEXT}"](sentence_vector)
 
