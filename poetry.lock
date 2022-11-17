@@ -687,7 +687,7 @@ requests = ">=2.6.0"
 
 [[package]]
 name = "datadog-api-client"
-version = "2.5.0"
+version = "2.6.0"
 description = "Collection of all Datadog Public endpoints"
 category = "dev"
 optional = false
@@ -702,7 +702,7 @@ urllib3 = ">=1.15"
 [package.extras]
 apm = ["ddtrace (>=1.2.0)"]
 async = ["aiosonic"]
-tests = ["aiosonic", "glom", "jinja2", "mypy", "pytest", "pytest-asyncio", "pytest-bdd (>=5.0.0)", "pytest-randomly", "pytest-recording", "python-dateutil", "types-python-dateutil", "zstandard"]
+tests = ["aiosonic", "glom", "jinja2", "mypy", "pytest", "pytest-asyncio", "pytest-bdd (==6.0.1)", "pytest-randomly", "pytest-recording", "python-dateutil", "types-python-dateutil", "zstandard"]
 zstandard = ["zstandard"]
 
 [[package]]
@@ -3707,7 +3707,7 @@ transformers = ["transformers", "sentencepiece"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7,<3.10"
-content-hash = "3de2b41395bd1edd1073ce2616707ac421bae5711447f6d4e98ddd253e777c18"
+content-hash = "c37cd2feff5f940b4363e349ef4cbd8ea41a0e37f79a90f330e679a80bf8dac9"
 
 [metadata.files]
 absl-py = [
@@ -4220,8 +4220,8 @@ datadog = [
     {file = "datadog-0.44.0.tar.gz", hash = "sha256:071170f0c7ef22511dbf7f9bd76c4be500ee2d3d52072900a5c87b5495d2c733"},
 ]
 datadog-api-client = [
-    {file = "datadog-api-client-2.5.0.tar.gz", hash = "sha256:6177be2390019eb99c3a607b810bf314cade79edaf8fda4b21de371481a28e77"},
-    {file = "datadog_api_client-2.5.0-py3-none-any.whl", hash = "sha256:c3764db29cd2f151644a1913a868f981f7098a3330411121ec353b17799f52a2"},
+    {file = "datadog-api-client-2.6.0.tar.gz", hash = "sha256:0cea246af38135315225a91ed07146937bf3aff2670e885de6525eee3227a346"},
+    {file = "datadog_api_client-2.6.0-py3-none-any.whl", hash = "sha256:76bb939ced35a5f6360e95b16aaa47aa5bc742ec878d7cdf7a99298a2cd8ce2c"},
 ]
 deprecated = [
     {file = "Deprecated-1.2.13-py2.py3-none-any.whl", hash = "sha256:64756e3e14c8c5eea9795d93c524551432a0be75629f8f29e67ab8caf076c76d"},

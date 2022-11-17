@@ -189,7 +189,7 @@ mypy-extensions = "^0.4.3"
 # changes that don't work for our sanic version
 sanic-testing = ">=21.12.0,<22.9.0"
 analytics-python = "^1.4.0"
-datadog-api-client = "^2.0.0"
+datadog-api-client = "^2.6.0"
 datadog = "^0.44.0"
 types-redis = "^4.3.20"
 
