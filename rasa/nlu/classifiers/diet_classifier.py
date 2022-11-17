@@ -663,7 +663,12 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         label_data.add_features(
             LABEL_KEY,
             LABEL_SUB_KEY,
-            [FeatureArray(np.expand_dims(label_ids, -1), number_of_dimensions=2)],
+            [
+                FeatureArray(
+                    np.expand_dims(label_ids, -1),
+                    number_of_dimensions=2,
+                )
+            ],
         )
 
         label_data.add_lengths(LABEL, SEQUENCE_LENGTH, LABEL, SEQUENCE)
@@ -791,7 +796,12 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
             model_data.add_features(
                 LABEL_KEY,
                 LABEL_SUB_KEY,
-                [FeatureArray(np.expand_dims(label_ids, -1), number_of_dimensions=2)],
+                [
+                    FeatureArray(
+                        np.expand_dims(label_ids, -1),
+                        number_of_dimensions=2,
+                    )
+                ],
             )
 
         if (
@@ -1613,7 +1623,7 @@ class DIET(TransformerRasaModel):
             sequence_feature_lengths + sentence_feature_lengths
         )
 
-        if self.config[MASKED_LM]:
+        if self.config[MASKED_LM] and self._training:
             loss, acc = self._mask_loss(
                 text_transformed, text_in, text_seq_ids, mlm_mask_boolean_text, TEXT
             )
